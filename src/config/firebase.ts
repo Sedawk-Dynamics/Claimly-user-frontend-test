@@ -1,0 +1,98 @@
+import { initializeApp } from 'firebase/app';
+import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, PhoneAuthProvider, signInWithCredential } from 'firebase/auth';
+import { getAnalytics } from 'firebase/analytics';
+
+// Firebase configuration
+const getFirebaseConfig = () => {
+  // Prefer environment variables, fallback to hardcoded values
+  const apiKey = 'AIzaSyCDlvhiaQfcjOjj-gomxvcjPmet5Uzn53s';
+  const authDomain = 'claimly-f3c25.firebaseapp.com';
+  const projectId = 'claimly-f3c25';
+  const storageBucket ='claimly-f3c25.firebasestorage.app';
+  const messagingSenderId ='39178158773';
+  const appId ='1:39178158773:web:ac2d34fe6d16278e9b74fc';
+  const measurementId ='G-JK5Y6G0KXQ';
+
+  // Validate API key
+  if (!apiKey || apiKey.length < 20) {
+    console.error('Firebase API Key is missing or invalid. Please check your .env file or Firebase configuration.');
+    throw new Error('Firebase API Key is missing or invalid');
+  }
+
+  return {
+    apiKey,
+    authDomain,
+    projectId,
+    storageBucket,
+    messagingSenderId,
+    appId,
+    measurementId,
+  };
+};
+
+const firebaseConfig = getFirebaseConfig();
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+
+// Set error handler for auth
+auth.onAuthStateChanged(
+  (user) => {
+    if (user) {
+      console.log('Firebase user authenticated:', user.uid);
+    }
+  },
+  (error: any) => {
+    console.error('Firebase Auth error:', error);
+    if (error?.code === 'auth/api-key-not-valid') {
+      console.error('❌ API Key Error - Please check:');
+      console.error('1. Verify API key in Firebase Console → Project Settings');
+      console.error('2. Check API key restrictions in Google Cloud Console');
+      console.error('3. Ensure localhost:* is allowed in HTTP referrers');
+      console.error('4. Verify .env file has correct VITE_FIREBASE_API_KEY');
+      console.error('5. Restart dev server after changing .env file');
+      console.error('6. See API_KEY_TROUBLESHOOTING.md for detailed help');
+    }
+  }
+);
+
+// Verify Firebase initialization
+console.log('✅ Firebase initialized successfully:', {
+  projectId: firebaseConfig.projectId,
+  authDomain: firebaseConfig.authDomain,
+  apiKeyPrefix: firebaseConfig.apiKey.substring(0, 10) + '...',
+  currentOrigin: typeof window !== 'undefined' ? window.location.origin : 'server',
+});
+
+// Initialize Analytics (optional, only in browser)
+if (typeof window !== 'undefined') {
+  try {
+    getAnalytics(app);
+  } catch (error) {
+    // Analytics initialization failed (e.g., in development or if not configured)
+    console.warn('Firebase Analytics initialization failed:', error);
+  }
+}
+
+export const setupRecaptcha = (elementId: string = 'recaptcha-container'): RecaptchaVerifier => {
+  return new RecaptchaVerifier(auth, elementId, {
+    size: 'invisible',
+    callback: () => {
+      // reCAPTCHA solved
+    },
+  });
+};
+
+export const sendOTP = async (phoneNumber: string, recaptchaVerifier: RecaptchaVerifier): Promise<string> => {
+  const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, recaptchaVerifier);
+  return confirmationResult.verificationId;
+};
+
+export const verifyOTP = async (verificationId: string, otp: string): Promise<string> => {
+  const credential = PhoneAuthProvider.credential(verificationId, otp);
+  const userCredential = await signInWithCredential(auth, credential);
+  const idToken = await userCredential.user.getIdToken();
+  return idToken;
+};
+
