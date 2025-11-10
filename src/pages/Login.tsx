@@ -1,7 +1,7 @@
 import { useState, useEffect, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
-import { setupRecaptcha, sendOTP, verifyOTP } from '../config/firebase';
+import { auth, setupRecaptcha, sendOTP, verifyOTP } from '../config/firebase';
 import { Shield, Phone, MessageSquare } from 'lucide-react';
 
 export default function Login() {
@@ -14,6 +14,7 @@ export default function Login() {
   const [name, setName] = useState('');
   const [dob, setDob] = useState('');
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<any>(null);
+  const [idToken, setIdToken] = useState<string>('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -51,10 +52,11 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const idToken = await verifyOTP(verificationId, otp);
+      const firebaseIdToken = await verifyOTP(verificationId, otp);
+      setIdToken(firebaseIdToken);
       // Try to login with existing user
       try {
-        const response = await authService.verifyOTP(idToken, phoneNumber);
+        const response = await authService.verifyOTP(firebaseIdToken, phoneNumber);
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
         navigate('/');
@@ -79,9 +81,19 @@ export default function Login() {
     setLoading(true);
 
     try {
-      // Re-verify OTP to get fresh token
-      const idToken = await verifyOTP(verificationId, otp);
-      const response = await authService.verifyOTP(idToken, phoneNumber, name, dob);
+      let firebaseIdToken = idToken;
+
+      if (!firebaseIdToken) {
+        if (auth.currentUser) {
+          firebaseIdToken = await auth.currentUser.getIdToken(true);
+          setIdToken(firebaseIdToken);
+        } else {
+          firebaseIdToken = await verifyOTP(verificationId, otp);
+          setIdToken(firebaseIdToken);
+        }
+      }
+
+      const response = await authService.verifyOTP(firebaseIdToken, phoneNumber, name, dob);
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
       navigate('/');
