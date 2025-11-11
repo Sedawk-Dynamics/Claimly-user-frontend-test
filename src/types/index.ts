@@ -83,6 +83,7 @@ export interface Policy {
     isVerified: boolean;
     uploadedAt: string;
     verifiedAt?: string | null;
+    rejectedAt?: string | null;
   }>;
 }
 

@@ -4,7 +4,7 @@ import { policyService, policyNomineeService } from '../services/policy.service'
 import { userService } from '../services/user.service';
 import { nomineeService } from '../services/nominee.service';
 import { Policy, Nominee } from '../types';
-import { FileText, Plus, Trash2, Users, Pencil, X } from 'lucide-react';
+import { FileText, Plus, Trash2, Users, Pencil, X, CheckCircle, Clock, XCircle, Upload, AlertCircle, RotateCcw } from 'lucide-react';
 import { format } from 'date-fns';
 import { useRequireActiveSubscription } from '../hooks/useRequireActiveSubscription';
 
@@ -323,16 +323,78 @@ export default function Policies() {
                     }`}>
                       {policy.status}
                     </span>
+                    {(() => {
+                      const totalDocs = policy.documents.length;
+                      const verifiedDocs = policy.documents.filter((doc) => doc.isVerified && doc.verifiedAt);
+                      const rejectedDocs = policy.documents.filter((doc) => doc.rejectedAt !== null && doc.rejectedAt !== undefined);
+                      const verifiedCount = verifiedDocs.length;
+                      
+                      // Check for re-verification: verified docs exist AND new unverified docs uploaded after latest verification
+                      let needsReverification = false;
+                      if (verifiedCount > 0 && verifiedCount < totalDocs) {
+                        const latestVerification = verifiedDocs
+                          .map((d) => d.verifiedAt ? new Date(d.verifiedAt).getTime() : 0)
+                          .sort((a, b) => b - a)[0];
+                        const unverifiedDocs = policy.documents.filter((doc) => !doc.isVerified && !doc.rejectedAt);
+                        needsReverification = unverifiedDocs.some((doc) => 
+                          new Date(doc.uploadedAt).getTime() > latestVerification
+                        );
+                      }
+                      
+                      if (totalDocs === 0) {
+                        return (
+                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <AlertCircle className="w-3 h-3 mr-1" />
+                            No Documents
+                          </span>
+                        );
+                      } else if (rejectedDocs.length > 0) {
+                        return (
+                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
+                            <XCircle className="w-3 h-3 mr-1" />
+                            Rejected
+                          </span>
+                        );
+                      } else if (verifiedCount === totalDocs) {
+                        return (
+                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                            <CheckCircle className="w-3 h-3 mr-1" />
+                            Verified
+                          </span>
+                        );
+                      } else if (needsReverification) {
+                        return (
+                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                            <RotateCcw className="w-3 h-3 mr-1" />
+                            Re-verification
+                          </span>
+                        );
+                      } else {
+                        return (
+                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                            <Clock className="w-3 h-3 mr-1" />
+                            Pending ({verifiedCount}/{totalDocs})
+                          </span>
+                        );
+                      }
+                    })()}
                   </div>
                   <p className="text-sm text-gray-600">{policy.insuranceCompany.name}</p>
                 </div>
                 <div className="flex space-x-2">
                   <button
-                    onClick={() => openNomineeModal(policy)}
+                    onClick={() => navigate(`/policies/${policy.id}/edit`)}
                     className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition"
-                    title="Manage Nominee Shares"
+                    title="Edit Policy"
                   >
                     <Pencil className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => openNomineeModal(policy)}
+                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                    title="Manage Nominee Shares"
+                  >
+                    <Users className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(policy.id)}
@@ -363,9 +425,130 @@ export default function Policies() {
                 </div>
                 <div>
                   <p className="text-gray-600">Documents</p>
-                  <p className="font-semibold text-gray-900">{policy.documents.length}</p>
+                  <p className="font-semibold text-gray-900">
+                    {policy.documents.filter((d) => d.isVerified).length}/{policy.documents.length} Verified
+                  </p>
                 </div>
               </div>
+              {policy.documents.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-gray-200">
+                  <p className="text-sm font-medium text-gray-700 mb-2">Documents:</p>
+                  <div className="space-y-2">
+                    {policy.documents.map((doc) => {
+                      const isRejected = doc.rejectedAt !== null && doc.rejectedAt !== undefined;
+                      const isVerified = doc.isVerified && doc.verifiedAt;
+                      const isReverification = !doc.isVerified && !isRejected && doc.verifiedAt !== null && doc.verifiedAt !== undefined;
+                      
+                      return (
+                        <div key={doc.id} className="flex items-center justify-between text-sm">
+                          <div className="flex items-center">
+                            <FileText className="w-4 h-4 mr-2 text-gray-400" />
+                            <span className="text-gray-700">{doc.documentName}</span>
+                            <span className="ml-2 text-xs text-gray-500">({doc.documentType})</span>
+                          </div>
+                          <div className="flex items-center">
+                            {isVerified ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Verified
+                              </span>
+                            ) : isRejected ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
+                                <XCircle className="w-3 h-3 mr-1" />
+                                Rejected
+                              </span>
+                            ) : isReverification ? (
+                              <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                                <RotateCcw className="w-3 h-3 mr-1" />
+                                Re-verification
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <Clock className="w-3 h-3 mr-1" />
+                                Pending
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  {(() => {
+                    const rejectedDocs = policy.documents.filter((d) => d.rejectedAt !== null && d.rejectedAt !== undefined);
+                    const verifiedDocs = policy.documents.filter((d) => d.isVerified && d.verifiedAt);
+                    const unverifiedDocs = policy.documents.filter((d) => !d.isVerified && !d.rejectedAt);
+                    
+                    if (verifiedDocs.length === policy.documents.length) {
+                      // All documents are verified, no message needed
+                      return null;
+                    }
+                    
+                    if (rejectedDocs.length > 0) {
+                      // Show rejected message if there are rejected documents
+                      return (
+                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <p className="text-sm text-red-800 mb-2">
+                            <AlertCircle className="w-4 h-4 inline mr-1" />
+                            Some documents were rejected. Please upload new documents for verification.
+                          </p>
+                          <button
+                            onClick={() => navigate(`/policies/${policy.id}/edit`)}
+                            className="inline-flex items-center px-3 py-1.5 text-xs font-medium bg-red-600 text-white rounded hover:bg-red-700 transition"
+                          >
+                            <Upload className="w-3 h-3 mr-1" />
+                            Resubmit Documents
+                          </button>
+                        </div>
+                      );
+                    } else if (unverifiedDocs.length > 0) {
+                      // Check if it's re-verification (new docs after verification) or pending
+                      const needsReverification = verifiedDocs.length > 0 && unverifiedDocs.some((doc) => {
+                        const latestVerification = verifiedDocs
+                          .map((d) => d.verifiedAt ? new Date(d.verifiedAt).getTime() : 0)
+                          .sort((a, b) => b - a)[0];
+                        return new Date(doc.uploadedAt).getTime() > latestVerification;
+                      });
+                      
+                      if (needsReverification) {
+                        return (
+                          <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                            <p className="text-sm text-orange-800 mb-2">
+                              <RotateCcw className="w-4 h-4 inline mr-1" />
+                              Re-verification pending. Please wait for admin approval.
+                            </p>
+                          </div>
+                        );
+                      } else {
+                        return (
+                          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <p className="text-sm text-yellow-800 mb-2">
+                              <Clock className="w-4 h-4 inline mr-1" />
+                              Verification pending. Please wait for admin approval.
+                            </p>
+                          </div>
+                        );
+                      }
+                    }
+                    
+                    return null;
+                  })()}
+                  {policy.documents.length === 0 && (
+                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-sm text-yellow-800 mb-2">
+                        <AlertCircle className="w-4 h-4 inline mr-1" />
+                        No documents uploaded. Please upload policy documents for verification.
+                      </p>
+                      <button
+                        onClick={() => navigate(`/policies/${policy.id}/edit`)}
+                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium bg-yellow-600 text-white rounded hover:bg-yellow-700 transition"
+                      >
+                        <Upload className="w-3 h-3 mr-1" />
+                        Upload Documents
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
               {policy.nominees.length > 0 && (
                 <div className="mt-4 pt-4 border-t border-gray-200">
                   <p className="text-sm font-medium text-gray-700 mb-2">Nominees:</p>

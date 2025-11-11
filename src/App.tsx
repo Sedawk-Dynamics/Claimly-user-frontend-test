@@ -13,6 +13,7 @@ import EditNominee from './pages/EditNominee';
 import Subscription from './pages/Subscription';
 import Policies from './pages/Policies';
 import AddPolicy from './pages/AddPolicy';
+import EditPolicy from './pages/EditPolicy';
 import KYC from './pages/KYC';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -43,6 +44,7 @@ function App() {
           <Route path="subscription" element={<Subscription />} />
           <Route path="policies" element={<Policies />} />
           <Route path="policies/add" element={<AddPolicy />} />
+          <Route path="policies/:id/edit" element={<EditPolicy />} />
           <Route path="kyc" element={<KYC />} />
         </Route>
       </Routes>
