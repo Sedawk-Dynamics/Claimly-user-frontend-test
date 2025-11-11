@@ -21,7 +21,12 @@ export const policyService = {
     return response.data.data;
   },
 
-  async updatePolicy(id: string, data: Partial<Policy>): Promise<Policy> {
+  async updatePolicy(id: string, data: {
+    insuranceCompanyId?: string;
+    policyNumber?: string;
+    sumAssured?: string;
+    status?: 'ACTIVE' | 'INACTIVE';
+  }): Promise<Policy> {
     const response = await api.put<{ success: boolean; data: Policy }>(`/policies/${id}`, data);
     return response.data.data;
   },

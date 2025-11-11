@@ -3,7 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { policyService, policyNomineeService, companyService, policyDocumentService } from '../services/policy.service';
 import { nomineeService } from '../services/nominee.service';
 import { InsuranceCompany, Nominee, Policy, PolicyDocument } from '../types';
-import { ArrowLeft, Upload, Check, FileText, Users, Building2, Trash2 } from 'lucide-react';
+import { ArrowLeft, Upload, FileText, Users, Building2, Trash2 } from 'lucide-react';
 import { useRequireActiveSubscription } from '../hooks/useRequireActiveSubscription';
 
 export default function EditPolicy() {
