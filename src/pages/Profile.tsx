@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { userService } from '../services/user.service';
-import { User } from '../types';
-import { User as UserIcon, Mail, Phone, Calendar, Save } from 'lucide-react';
+import { userService, documentService } from '../services/user.service';
+import { policyService, policyDocumentService } from '../services/policy.service';
+import { nomineeService, nomineeDocumentService } from '../services/nominee.service';
+import { User, UserDocument, Policy, Nominee } from '../types';
+import { User as UserIcon, Mail, Phone, Calendar, Save, FileText, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw } from 'lucide-react';
 import KycSection from '../components/KycSection';
 import { useRequireActiveSubscription } from '../hooks/useRequireActiveSubscription';
 
@@ -17,6 +19,12 @@ export default function Profile() {
     email: '',
     dob: '',
   });
+  const [userDocuments, setUserDocuments] = useState<UserDocument[]>([]);
+  const [policies, setPolicies] = useState<Policy[]>([]);
+  const [nominees, setNominees] = useState<Nominee[]>([]);
+  const [loadingDocuments, setLoadingDocuments] = useState(false);
+  const [updatingDocument, setUpdatingDocument] = useState<string | null>(null);
+  const [updateFiles, setUpdateFiles] = useState<{ [key: string]: File | null }>({});
   const { checking } = useRequireActiveSubscription();
 
   useEffect(() => {
@@ -24,7 +32,51 @@ export default function Profile() {
       return;
     }
     loadProfile();
+    loadAllDocuments();
   }, [checking]);
+
+  const loadAllDocuments = async () => {
+    try {
+      setLoadingDocuments(true);
+      const [docs, policiesData, nomineesData] = await Promise.all([
+        documentService.getDocuments(),
+        policyService.getPolicies(),
+        nomineeService.getNominees(),
+      ]);
+      setUserDocuments(docs);
+      setPolicies(policiesData);
+      setNominees(nomineesData);
+    } catch (err: any) {
+      console.error('Failed to load documents', err);
+    } finally {
+      setLoadingDocuments(false);
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+  };
+
+  const formatEnumLabel = (value: string) => {
+    return value
+      .toLowerCase()
+      .split('_')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
+
+  const getDocumentUrl = (url: string) => {
+    if (!url) return url;
+    if (/^https?:\/\//i.test(url)) {
+      return url;
+    }
+    const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    return `${apiBaseUrl}${url.startsWith('/') ? url : `/${url}`}`;
+  };
 
   const loadProfile = async () => {
     try {
@@ -61,6 +113,69 @@ export default function Profile() {
       setError(err.response?.data?.error || 'Failed to update profile');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleUpdateUserDocument = async (documentId: string, documentType: 'AADHAAR' | 'PAN' | 'OTHER', file: File) => {
+    if (!file) {
+      setError('Please select a file to update.');
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    setUpdatingDocument(documentId);
+    try {
+      await documentService.updateDocument(documentId, file, documentType, file.name);
+      setUpdateFiles({ ...updateFiles, [documentId]: null });
+      setSuccess('Document updated successfully. Please wait for admin verification.');
+      await loadAllDocuments();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to update document');
+    } finally {
+      setUpdatingDocument(null);
+    }
+  };
+
+  const handleUpdatePolicyDocument = async (policyId: string, documentId: string, documentType: 'POLICY_COPY' | 'RECEIPT' | 'OTHER', file: File) => {
+    if (!file) {
+      setError('Please select a file to update.');
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    setUpdatingDocument(documentId);
+    try {
+      await policyDocumentService.updateDocument(policyId, documentId, file, documentType, file.name);
+      setUpdateFiles({ ...updateFiles, [documentId]: null });
+      setSuccess('Document updated successfully. Please wait for admin verification.');
+      await loadAllDocuments();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to update document');
+    } finally {
+      setUpdatingDocument(null);
+    }
+  };
+
+  const handleUpdateNomineeDocument = async (nomineeId: string, documentId: string, documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'DEATH_CERTIFICATE' | 'OTHER', file: File) => {
+    if (!file) {
+      setError('Please select a file to update.');
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    setUpdatingDocument(documentId);
+    try {
+      await nomineeDocumentService.updateDocument(nomineeId, documentId, file, documentType, file.name);
+      setUpdateFiles({ ...updateFiles, [documentId]: null });
+      setSuccess('Document updated successfully. Please wait for admin verification.');
+      await loadAllDocuments();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to update document');
+    } finally {
+      setUpdatingDocument(null);
     }
   };
 
@@ -204,6 +319,407 @@ export default function Profile() {
         </div>
       </div>
       <KycSection />
+      
+      {/* All Documents Section */}
+      <div className="bg-white rounded-lg shadow-lg p-8 mt-8">
+        <h2 className="text-xl font-bold text-gray-900 mb-6 flex items-center">
+          <FileText className="w-5 h-5 mr-2" />
+          All Documents
+        </h2>
+
+        {loadingDocuments ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* User Documents */}
+            {userDocuments.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">My Documents</h3>
+                <div className="space-y-2">
+                  {userDocuments.map((document) => {
+                    const isUpdating = updatingDocument === document.id;
+                    const hasUpdateFile = updateFiles[document.id] !== null && updateFiles[document.id] !== undefined;
+                    
+                    // Determine status: Verified, Re-verification, or Pending
+                    const isReverification = !document.isVerified && document.verifiedAt !== null && document.verifiedAt !== undefined;
+                    const statusBadge = document.isVerified ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Verified
+                      </span>
+                    ) : isReverification ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                        <RotateCcw className="w-3 h-3 mr-1" />
+                        Re-verification
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Pending
+                      </span>
+                    );
+                    
+                    return (
+                      <div key={document.id} className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="text-sm font-medium text-gray-900">{document.documentName}</p>
+                              {statusBadge}
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {formatEnumLabel(document.documentType)} • Uploaded {formatDate(document.uploadedAt)}
+                            </p>
+                            {document.isVerified && document.verifiedAt && (
+                              <p className="text-xs text-green-600 mt-1">
+                                Verified on {formatDate(document.verifiedAt)}
+                              </p>
+                            )}
+                            {isReverification && document.verifiedAt && (
+                              <p className="text-xs text-orange-600 mt-1">
+                                Previously verified on {formatDate(document.verifiedAt)} • Awaiting re-verification
+                              </p>
+                            )}
+                          </div>
+                          <a
+                            href={getDocumentUrl(document.documentUrl)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="ml-3 inline-flex items-center text-sm text-primary-600 hover:text-primary-700"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </a>
+                        </div>
+                        <div className="mt-2 pt-2 border-t border-gray-300">
+                          {!hasUpdateFile ? (
+                            <label className="flex items-center gap-2 text-xs text-primary-600 hover:text-primary-700 cursor-pointer">
+                              <Edit2 className="w-3 h-3" />
+                              <span>Replace</span>
+                              <input
+                                type="file"
+                                className="sr-only"
+                                accept="image/*,.pdf"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0] || null;
+                                  setUpdateFiles({ ...updateFiles, [document.id]: file });
+                                  setError('');
+                                }}
+                              />
+                            </label>
+                          ) : (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs text-gray-700">
+                                  {updateFiles[document.id]?.name}
+                                </span>
+                                <button
+                                  onClick={() => setUpdateFiles({ ...updateFiles, [document.id]: null })}
+                                  className="text-xs text-gray-500 hover:text-gray-700"
+                                >
+                                  <X className="w-3 h-3" />
+                                </button>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    if (updateFiles[document.id]) {
+                                      handleUpdateUserDocument(document.id, document.documentType as 'AADHAAR' | 'PAN' | 'OTHER', updateFiles[document.id]!);
+                                    }
+                                  }}
+                                  disabled={isUpdating}
+                                  className="px-2 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 transition disabled:opacity-50"
+                                >
+                                  {isUpdating ? 'Updating...' : 'Update'}
+                                </button>
+                                <button
+                                  onClick={() => setUpdateFiles({ ...updateFiles, [document.id]: null })}
+                                  disabled={isUpdating}
+                                  className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition disabled:opacity-50"
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Policy Documents */}
+            {policies.length > 0 && policies.some((p) => p.documents && p.documents.length > 0) && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Policy Documents</h3>
+                <div className="space-y-4">
+                  {policies.map((policy) =>
+                    policy.documents && policy.documents.length > 0 ? (
+                      <div key={policy.id} className="border border-gray-200 rounded-lg p-4">
+                        <p className="text-sm font-medium text-gray-900 mb-2">
+                          Policy #{policy.policyNumber} - {policy.insuranceCompany.name}
+                        </p>
+                        <div className="space-y-2">
+                          {policy.documents.map((document) => {
+                            const isUpdating = updatingDocument === document.id;
+                            const hasUpdateFile = updateFiles[document.id] !== null && updateFiles[document.id] !== undefined;
+                            
+                            // Determine status: Verified, Re-verification, or Pending
+                            const isReverification = !document.isVerified && document.verifiedAt !== null && document.verifiedAt !== undefined;
+                            const statusBadge = document.isVerified ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Verified
+                              </span>
+                            ) : isReverification ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                                <RotateCcw className="w-3 h-3 mr-1" />
+                                Re-verification
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <Clock className="w-3 h-3 mr-1" />
+                                Pending
+                              </span>
+                            );
+                            
+                            return (
+                              <div key={document.id} className="p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <p className="text-sm font-medium text-gray-900">{document.documentName}</p>
+                                      {statusBadge}
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      {formatEnumLabel(document.documentType)} • Uploaded {formatDate(document.uploadedAt)}
+                                    </p>
+                                    {document.isVerified && document.verifiedAt && (
+                                      <p className="text-xs text-green-600 mt-1">
+                                        Verified on {formatDate(document.verifiedAt)}
+                                      </p>
+                                    )}
+                                    {isReverification && document.verifiedAt && (
+                                      <p className="text-xs text-orange-600 mt-1">
+                                        Previously verified on {formatDate(document.verifiedAt)} • Awaiting re-verification
+                                      </p>
+                                    )}
+                                  </div>
+                                  <a
+                                    href={getDocumentUrl(document.documentUrl)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="ml-3 inline-flex items-center text-sm text-primary-600 hover:text-primary-700"
+                                  >
+                                    <ExternalLink className="w-4 h-4" />
+                                  </a>
+                                </div>
+                                <div className="mt-2 pt-2 border-t border-gray-300">
+                                  {!hasUpdateFile ? (
+                                    <label className="flex items-center gap-2 text-xs text-primary-600 hover:text-primary-700 cursor-pointer">
+                                      <Edit2 className="w-3 h-3" />
+                                      <span>Replace</span>
+                                      <input
+                                        type="file"
+                                        className="sr-only"
+                                        accept="image/*,.pdf"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0] || null;
+                                          setUpdateFiles({ ...updateFiles, [document.id]: file });
+                                          setError('');
+                                        }}
+                                      />
+                                    </label>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs text-gray-700">
+                                          {updateFiles[document.id]?.name}
+                                        </span>
+                                        <button
+                                          onClick={() => setUpdateFiles({ ...updateFiles, [document.id]: null })}
+                                          className="text-xs text-gray-500 hover:text-gray-700"
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          onClick={() => {
+                                            if (updateFiles[document.id]) {
+                                              handleUpdatePolicyDocument(policy.id, document.id, document.documentType as 'POLICY_COPY' | 'RECEIPT' | 'OTHER', updateFiles[document.id]!);
+                                            }
+                                          }}
+                                          disabled={isUpdating}
+                                          className="px-2 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 transition disabled:opacity-50"
+                                        >
+                                          {isUpdating ? 'Updating...' : 'Update'}
+                                        </button>
+                                        <button
+                                          onClick={() => setUpdateFiles({ ...updateFiles, [document.id]: null })}
+                                          disabled={isUpdating}
+                                          className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition disabled:opacity-50"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : null
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Nominee Documents */}
+            {nominees.length > 0 && nominees.some((n) => n.documents && n.documents.length > 0) && (
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-3">Nominee Documents</h3>
+                <div className="space-y-4">
+                  {nominees.map((nominee) =>
+                    nominee.documents && nominee.documents.length > 0 ? (
+                      <div key={nominee.id} className="border border-gray-200 rounded-lg p-4">
+                        <p className="text-sm font-medium text-gray-900 mb-2">
+                          {nominee.name} ({formatEnumLabel(nominee.relationship)})
+                        </p>
+                        <div className="space-y-2">
+                          {nominee.documents.map((document) => {
+                            const isUpdating = updatingDocument === document.id;
+                            const hasUpdateFile = updateFiles[document.id] !== null && updateFiles[document.id] !== undefined;
+                            
+                            // Determine status: Verified, Re-verification, or Pending
+                            const isReverification = !document.isVerified && document.verifiedAt !== null && document.verifiedAt !== undefined;
+                            const statusBadge = document.isVerified ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Verified
+                              </span>
+                            ) : isReverification ? (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                                <RotateCcw className="w-3 h-3 mr-1" />
+                                Re-verification
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                                <Clock className="w-3 h-3 mr-1" />
+                                Pending
+                              </span>
+                            );
+                            
+                            return (
+                              <div key={document.id} className="p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center justify-between mb-2">
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2 flex-wrap">
+                                      <p className="text-sm font-medium text-gray-900">{document.documentName}</p>
+                                      {statusBadge}
+                                    </div>
+                                    <p className="text-xs text-gray-500 mt-1">
+                                      {formatEnumLabel(document.documentType)} • Uploaded {formatDate(document.uploadedAt)}
+                                    </p>
+                                    {document.isVerified && document.verifiedAt && (
+                                      <p className="text-xs text-green-600 mt-1">
+                                        Verified on {formatDate(document.verifiedAt)}
+                                      </p>
+                                    )}
+                                    {isReverification && document.verifiedAt && (
+                                      <p className="text-xs text-orange-600 mt-1">
+                                        Previously verified on {formatDate(document.verifiedAt)} • Awaiting re-verification
+                                      </p>
+                                    )}
+                                  </div>
+                                  <a
+                                    href={getDocumentUrl(document.documentUrl)}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="ml-3 inline-flex items-center text-sm text-primary-600 hover:text-primary-700"
+                                  >
+                                    <ExternalLink className="w-4 h-4" />
+                                  </a>
+                                </div>
+                                <div className="mt-2 pt-2 border-t border-gray-300">
+                                  {!hasUpdateFile ? (
+                                    <label className="flex items-center gap-2 text-xs text-primary-600 hover:text-primary-700 cursor-pointer">
+                                      <Edit2 className="w-3 h-3" />
+                                      <span>Replace</span>
+                                      <input
+                                        type="file"
+                                        className="sr-only"
+                                        accept="image/*,.pdf"
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0] || null;
+                                          setUpdateFiles({ ...updateFiles, [document.id]: file });
+                                          setError('');
+                                        }}
+                                      />
+                                    </label>
+                                  ) : (
+                                    <div className="space-y-2">
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs text-gray-700">
+                                          {updateFiles[document.id]?.name}
+                                        </span>
+                                        <button
+                                          onClick={() => setUpdateFiles({ ...updateFiles, [document.id]: null })}
+                                          className="text-xs text-gray-500 hover:text-gray-700"
+                                        >
+                                          <X className="w-3 h-3" />
+                                        </button>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <button
+                                          onClick={() => {
+                                            if (updateFiles[document.id]) {
+                                              handleUpdateNomineeDocument(nominee.id, document.id, document.documentType as 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'DEATH_CERTIFICATE' | 'OTHER', updateFiles[document.id]!);
+                                            }
+                                          }}
+                                          disabled={isUpdating}
+                                          className="px-2 py-1 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 transition disabled:opacity-50"
+                                        >
+                                          {isUpdating ? 'Updating...' : 'Update'}
+                                        </button>
+                                        <button
+                                          onClick={() => setUpdateFiles({ ...updateFiles, [document.id]: null })}
+                                          disabled={isUpdating}
+                                          className="px-2 py-1 text-xs bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition disabled:opacity-50"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : null
+                  )}
+                </div>
+              </div>
+            )}
+
+            {userDocuments.length === 0 &&
+              policies.every((p) => !p.documents || p.documents.length === 0) &&
+              nominees.every((n) => !n.documents || n.documents.length === 0) && (
+                <div className="text-center py-8 text-gray-500">
+                  <FileText className="w-12 h-12 mx-auto mb-2 text-gray-400" />
+                  <p>No documents uploaded yet</p>
+                </div>
+              )}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

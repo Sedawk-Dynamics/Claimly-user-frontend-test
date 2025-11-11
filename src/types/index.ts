@@ -38,6 +38,16 @@ export interface Nominee {
   address?: string;
   createdAt: string;
   updatedAt: string;
+  documents?: NomineeDocument[];
+  documentsCount?: number;
+  verifiedDocumentsCount?: number;
+  isVerified?: boolean;
+  policies?: Array<{
+    policyId: string;
+    policyNumber: string;
+    sumAssured: string;
+    sharePercentage: string;
+  }>;
 }
 
 export interface InsuranceCompany {
@@ -72,6 +82,7 @@ export interface Policy {
     documentUrl: string;
     isVerified: boolean;
     uploadedAt: string;
+    verifiedAt?: string | null;
   }>;
 }
 

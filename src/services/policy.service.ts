@@ -57,6 +57,32 @@ export const policyDocumentService = {
     return response.data.data;
   },
 
+  async updateDocument(
+    policyId: string,
+    documentId: string,
+    file: File,
+    documentType: 'POLICY_COPY' | 'RECEIPT' | 'OTHER',
+    documentName?: string
+  ): Promise<PolicyDocument> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('documentType', documentType);
+    if (documentName) {
+      formData.append('documentName', documentName);
+    }
+
+    const response = await api.put<{ success: boolean; data: PolicyDocument }>(
+      `/policy/${policyId}/document/${documentId}`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data.data;
+  },
+
   async getDocuments(policyId: string): Promise<PolicyDocument[]> {
     const response = await api.get<{ success: boolean; data: PolicyDocument[] }>(`/policy/${policyId}/document`);
     return response.data.data;

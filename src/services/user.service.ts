@@ -42,6 +42,22 @@ export const documentService = {
     return response.data.data;
   },
 
+  async updateDocument(documentId: string, file: File, documentType: 'AADHAAR' | 'PAN' | 'OTHER', documentName?: string): Promise<UserDocument> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('documentType', documentType);
+    if (documentName) {
+      formData.append('documentName', documentName);
+    }
+
+    const response = await api.put<{ success: boolean; data: UserDocument }>(`/user/document/${documentId}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data.data;
+  },
+
   async getDocuments(): Promise<UserDocument[]> {
     const response = await api.get<{ success: boolean; data: UserDocument[] }>('/user/document');
     return response.data.data;

@@ -59,6 +59,32 @@ export const nomineeDocumentService = {
     return response.data.data;
   },
 
+  async updateDocument(
+    nomineeId: string,
+    documentId: string,
+    file: File,
+    documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'DEATH_CERTIFICATE' | 'OTHER',
+    documentName?: string
+  ): Promise<NomineeDocument> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('documentType', documentType);
+    if (documentName) {
+      formData.append('documentName', documentName);
+    }
+
+    const response = await api.put<{ success: boolean; data: NomineeDocument }>(
+      `/nominee/${nomineeId}/document/${documentId}`,
+      formData,
+      {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      }
+    );
+    return response.data.data;
+  },
+
   async getDocuments(nomineeId: string): Promise<NomineeDocument[]> {
     const response = await api.get<{ success: boolean; data: NomineeDocument[] }>(`/nominee/${nomineeId}/document`);
     return response.data.data;
