@@ -2,7 +2,8 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { auth, setupRecaptcha, sendOTP, verifyOTP } from '../config/firebase';
-import { Shield, Phone, MessageSquare } from 'lucide-react';
+import { Phone, MessageSquare } from 'lucide-react';
+import logo from '../logo/claimly logo png.png';
 
 export default function Login() {
   const [step, setStep] = useState<'phone' | 'otp' | 'signup'>('phone');
@@ -110,10 +111,9 @@ export default function Login() {
       <div className="max-w-md w-full">
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
-              <Shield className="w-8 h-8 text-primary-600" />
+            <div className="flex justify-center mb-4">
+              <img src={logo} alt="Claimly" className="h-20 w-auto" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Claimly</h1>
             <p className="text-gray-600 mt-2">
               {step === 'phone' && 'Sign in to your account'}
               {step === 'otp' && 'Enter OTP'}
