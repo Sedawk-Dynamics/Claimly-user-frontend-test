@@ -94,7 +94,8 @@ export interface UserDocument {
   documentUrl: string;
   isVerified: boolean;
   uploadedAt: string;
-  verifiedAt?: string;
+  verifiedAt?: string | null;
+  rejectedAt?: string | null;
 }
 
 export interface KycStatus {

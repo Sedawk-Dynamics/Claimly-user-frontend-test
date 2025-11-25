@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { documentService, userService } from '../services/user.service';
 import { KycStatus } from '../types';
-import { Upload, Check, CreditCard, FileText, ArrowLeft, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw } from 'lucide-react';
+import { Upload, Check, CreditCard, FileText, ArrowLeft, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw, XCircle } from 'lucide-react';
 
 export default function KYC() {
   const navigate = useNavigate();
@@ -129,12 +129,18 @@ export default function KYC() {
     const isUpdating = updatingDocument === doc.id;
     const hasUpdateFile = updateFiles[doc.id] !== null && updateFiles[doc.id] !== undefined;
     
-    // Determine status: Verified, Re-verification, or Pending
+    // Determine status: Verified, Re-verification, Rejected, or Pending
     const isReverification = !doc.isVerified && doc.verifiedAt !== null && doc.verifiedAt !== undefined;
+    const isRejected = doc.rejectedAt !== null && doc.rejectedAt !== undefined;
     const statusBadge = doc.isVerified ? (
       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
         <CheckCircle className="w-3 h-3 mr-1" />
         Verified
+      </span>
+    ) : isRejected ? (
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+        <XCircle className="w-3 h-3 mr-1" />
+        Rejected
       </span>
     ) : isReverification ? (
       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
@@ -165,6 +171,11 @@ export default function KYC() {
                 {doc.isVerified && doc.verifiedAt && (
                   <p className="text-xs text-green-600 mt-1">
                     Verified on {formatDate(doc.verifiedAt)}
+                  </p>
+                )}
+                {isRejected && doc.rejectedAt && (
+                  <p className="text-xs text-red-600 mt-1">
+                    Rejected on {formatDate(doc.rejectedAt)} • Please upload a new document
                   </p>
                 )}
                 {isReverification && doc.verifiedAt && (
