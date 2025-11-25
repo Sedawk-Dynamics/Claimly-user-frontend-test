@@ -45,8 +45,12 @@ export default function Subscription() {
 
   if (checking || loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-200 dark:border-cyan-900 border-t-brand-500 dark:border-t-cyan-400"></div>
+          <div className="absolute inset-0 rounded-full bg-gradient-brand opacity-20 blur-xl animate-pulse-glow"></div>
+        </div>
+        <p className="text-gray-600 dark:text-gray-400 font-medium animate-pulse">Loading...</p>
       </div>
     );
   }
@@ -55,45 +59,49 @@ export default function Subscription() {
     switch (status) {
       case 'ACTIVE':
       case 'SUCCESS':
-        return <Check className="w-5 h-5 text-green-600" />;
+        return <Check className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />;
       case 'PENDING':
-        return <Clock className="w-5 h-5 text-yellow-600" />;
+        return <Clock className="w-5 h-5 text-yellow-600 dark:text-yellow-400" />;
       case 'FAILED':
       case 'INACTIVE':
       case 'EXPIRED':
-        return <X className="w-5 h-5 text-red-600" />;
+        return <X className="w-5 h-5 text-orange-600 dark:text-orange-400" />;
       default:
         return null;
     }
   };
 
-  const getStatusColor = (status: string) => {
+  const getStatusBadge = (status: string) => {
     switch (status) {
       case 'ACTIVE':
       case 'SUCCESS':
-        return 'bg-green-100 text-green-800';
+        return 'badge badge-success';
       case 'PENDING':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'badge badge-warning';
       case 'FAILED':
       case 'INACTIVE':
       case 'EXPIRED':
-        return 'bg-red-100 text-red-800';
+        return 'badge badge-danger';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'badge status-inactive';
     }
   };
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My Subscription</h1>
+    <div className="space-y-6 sm:space-y-8">
+      <div>
+        <h1 className="text-3xl sm:text-4xl font-bold text-gradient-brand mb-2">My Subscription</h1>
+        <p className="text-gray-600 dark:text-gray-400">View your subscription status and history</p>
       </div>
 
       {/* Current Subscription */}
-      <div className="bg-white rounded-lg shadow-lg p-8 mb-6">
+      <div className="card p-6 sm:p-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Current Subscription</h2>
-          <div className={`px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-2 ${getStatusColor(currentSubscription?.status || 'INACTIVE')}`}>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+            <div className="w-1 h-6 bg-gradient-brand rounded-full mr-3"></div>
+            Current Subscription
+          </h2>
+          <div className={`${getStatusBadge(currentSubscription?.status || 'INACTIVE')} flex items-center space-x-2`}>
             {getStatusIcon(currentSubscription?.status || 'INACTIVE')}
             <span>{currentSubscription?.status || 'INACTIVE'}</span>
           </div>
@@ -101,40 +109,45 @@ export default function Subscription() {
 
         {currentSubscription?.status === 'ACTIVE' && currentSubscription.subscription ? (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <p className="text-sm text-gray-600">Plan Name</p>
-                <p className="text-lg font-semibold text-gray-900">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 bg-gradient-to-br from-brand-50 to-cyan-50 dark:from-brand-950/30 dark:to-cyan-950/30 rounded-xl border border-brand-200/30 dark:border-brand-800/30">
+                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">Plan Name</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {currentSubscription.subscription.planName}
                 </p>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">Amount</p>
-                <p className="text-lg font-semibold text-gray-900">
+              <div className="p-4 bg-gradient-to-br from-cyan-50 to-brand-50 dark:from-cyan-950/30 dark:to-brand-950/30 rounded-xl border border-cyan-200/30 dark:border-cyan-800/30">
+                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">Amount</p>
+                <p className="text-lg font-bold text-gradient-brand">
                   ₹{currentSubscription.subscription.amount}
                 </p>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">Payment Status</p>
-                <p className="text-lg font-semibold text-gray-900">
+              <div className="p-4 bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-950/30 dark:to-yellow-950/30 rounded-xl border border-orange-200/30 dark:border-orange-800/30">
+                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">Payment Status</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {currentSubscription.subscription.paymentStatus}
                 </p>
               </div>
-              <div>
-                <p className="text-sm text-gray-600">Transaction Date</p>
-                <p className="text-lg font-semibold text-gray-900">
+              <div className="p-4 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 rounded-xl border border-yellow-200/30 dark:border-yellow-800/30">
+                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-1">Transaction Date</p>
+                <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {format(new Date(currentSubscription.subscription.transactionDate), 'MMM dd, yyyy')}
                 </p>
               </div>
             </div>
           </div>
         ) : (
-          <div className="text-center py-8">
-            <CreditCard className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600 mb-4">No active subscription</p>
+          <div className="text-center py-12">
+            <div className="relative inline-block mb-4">
+              <div className="absolute inset-0 bg-gradient-sunset rounded-full blur-xl opacity-50"></div>
+              <div className="relative p-4 bg-gradient-to-br from-orange-400 to-yellow-400 rounded-full">
+                <CreditCard className="w-12 h-12 text-white" />
+              </div>
+            </div>
+            <p className="text-gray-600 dark:text-gray-400 mb-6 font-medium">No active subscription</p>
             <button
               onClick={() => window.location.href = '/subscription-offering'}
-              className="px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+              className="btn-orange"
             >
               Subscribe Now
             </button>
@@ -143,12 +156,15 @@ export default function Subscription() {
       </div>
 
       {/* Subscription History */}
-      <div className="bg-white rounded-lg shadow-lg p-8">
+      <div className="card p-6 sm:p-8">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold text-gray-900">Subscription History</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+            <div className="w-1 h-6 bg-gradient-sunset rounded-full mr-3"></div>
+            Subscription History
+          </h2>
           <button
             onClick={() => setShowHistory(!showHistory)}
-            className="text-primary-600 hover:text-primary-700 text-sm font-medium"
+            className="text-sm font-semibold text-brand-600 dark:text-cyan-400 hover:text-brand-700 dark:hover:text-cyan-300 transition-colors"
           >
             {showHistory ? 'Hide' : 'Show'} History
           </button>
@@ -158,29 +174,29 @@ export default function Subscription() {
           <div className="space-y-4">
             {subscriptionHistory.length > 0 ? (
               subscriptionHistory.map((sub) => (
-                <div key={sub.id} className="border border-gray-200 rounded-lg p-4">
+                <div key={sub.id} className="card p-4 border border-cyan-400/20 hover:border-cyan-400/40 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center space-x-4">
-                        <h3 className="font-semibold text-gray-900">{sub.planName}</h3>
-                        <span className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(sub.paymentStatus)}`}>
+                      <div className="flex items-center space-x-4 mb-3">
+                        <h3 className="font-bold text-gray-900 dark:text-white">{sub.planName}</h3>
+                        <span className={getStatusBadge(sub.paymentStatus)}>
                           {sub.paymentStatus}
                         </span>
                       </div>
-                      <div className="mt-2 grid grid-cols-3 gap-4 text-sm">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm">
                         <div>
-                          <p className="text-gray-600">Amount</p>
-                          <p className="font-medium text-gray-900">₹{sub.amount}</p>
+                          <p className="text-gray-600 dark:text-gray-400 font-semibold mb-1">Amount</p>
+                          <p className="font-bold text-gray-900 dark:text-white">₹{sub.amount}</p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Date</p>
-                          <p className="font-medium text-gray-900">
+                          <p className="text-gray-600 dark:text-gray-400 font-semibold mb-1">Date</p>
+                          <p className="font-bold text-gray-900 dark:text-white">
                             {format(new Date(sub.transactionDate), 'MMM dd, yyyy')}
                           </p>
                         </div>
                         <div>
-                          <p className="text-gray-600">Payment ID</p>
-                          <p className="font-mono text-xs text-gray-900">{sub.paymentId}</p>
+                          <p className="text-gray-600 dark:text-gray-400 font-semibold mb-1">Payment ID</p>
+                          <p className="font-mono text-xs text-gray-900 dark:text-gray-100">{sub.paymentId}</p>
                         </div>
                       </div>
                     </div>
@@ -188,7 +204,7 @@ export default function Subscription() {
                 </div>
               ))
             ) : (
-              <p className="text-gray-600 text-center py-8">No subscription history</p>
+              <p className="text-gray-600 dark:text-gray-400 text-center py-8">No subscription history</p>
             )}
           </div>
         )}

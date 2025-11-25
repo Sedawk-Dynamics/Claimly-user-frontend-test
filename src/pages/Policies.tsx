@@ -272,55 +272,68 @@ export default function Policies() {
 
   if (checking || loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-200 dark:border-cyan-900 border-t-brand-500 dark:border-t-cyan-400"></div>
+          <div className="absolute inset-0 rounded-full bg-gradient-brand opacity-20 blur-xl animate-pulse-glow"></div>
+        </div>
+        <p className="text-gray-600 dark:text-gray-400 font-medium animate-pulse">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My Policies</h1>
+    <div className="space-y-6 sm:space-y-8">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gradient-brand mb-2">My Policies</h1>
+          <p className="text-gray-600 dark:text-gray-400">View and manage your insurance policies</p>
+        </div>
         <button
           onClick={handleAddPolicy}
-          className="flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+          className="btn-brand flex items-center space-x-2"
         >
-          <Plus className="w-5 h-5 mr-2" />
-          Add Policy
+          <Plus className="w-5 h-5" />
+          <span>Add Policy</span>
         </button>
       </div>
 
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm mb-6">
-          {error}
+        <div className="bg-orange-500/20 border-2 border-orange-400 backdrop-blur-sm text-orange-900 dark:text-orange-200 px-4 py-3 rounded-lg text-sm shadow-glow-orange">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+            <p className="font-medium">{error}</p>
+          </div>
         </div>
       )}
 
       {policies.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-lg p-12 text-center">
-          <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-xl font-semibold text-gray-900 mb-2">No Policies</h3>
-          <p className="text-gray-600 mb-6">Get started by adding your first policy</p>
+        <div className="card p-12 text-center">
+          <div className="relative inline-block mb-4">
+            <div className="absolute inset-0 bg-gradient-brand rounded-full blur-xl opacity-50"></div>
+            <div className="relative p-4 bg-gradient-to-br from-brand-500 to-cyan-400 rounded-full">
+              <FileText className="w-12 h-12 text-white" />
+            </div>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">No Policies</h3>
+          <p className="text-gray-600 dark:text-gray-400 mb-6">Get started by adding your first policy</p>
           <button
             onClick={handleAddPolicy}
-            className="inline-flex items-center px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+            className="btn-brand inline-flex items-center space-x-2"
           >
-            <Plus className="w-5 h-5 mr-2" />
-            Add Policy
+            <Plus className="w-5 h-5" />
+            <span>Add Policy</span>
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6">
           {policies.map((policy) => (
-            <div key={policy.id} className="bg-white rounded-lg shadow-md p-6 border border-gray-200">
+            <div key={policy.id} className="card p-6 border border-cyan-400/20 hover:border-cyan-400/40 transition-colors">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-900">{policy.policyNumber}</h3>
-                    <span className={`px-2 py-1 rounded text-xs font-medium ${
-                      policy.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                    }`}>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white">{policy.policyNumber}</h3>
+                    <span className={`badge ${policy.status === 'ACTIVE' ? 'badge-success' : 'status-inactive'}`}>
                       {policy.status}
                     </span>
                     {(() => {
@@ -343,35 +356,35 @@ export default function Policies() {
                       
                       if (totalDocs === 0) {
                         return (
-                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                          <span className="badge badge-warning">
                             <AlertCircle className="w-3 h-3 mr-1" />
                             No Documents
                           </span>
                         );
                       } else if (rejectedDocs.length > 0) {
                         return (
-                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">
+                          <span className="badge badge-danger">
                             <XCircle className="w-3 h-3 mr-1" />
                             Rejected
                           </span>
                         );
                       } else if (verifiedCount === totalDocs) {
                         return (
-                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-green-100 text-green-800">
+                          <span className="badge badge-success">
                             <CheckCircle className="w-3 h-3 mr-1" />
                             Verified
                           </span>
                         );
                       } else if (needsReverification) {
                         return (
-                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-orange-100 text-orange-800">
+                          <span className="badge badge-danger">
                             <RotateCcw className="w-3 h-3 mr-1" />
                             Re-verification
                           </span>
                         );
                       } else {
                         return (
-                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                          <span className="badge badge-warning">
                             <Clock className="w-3 h-3 mr-1" />
                             Pending ({verifiedCount}/{totalDocs})
                           </span>
@@ -379,26 +392,26 @@ export default function Policies() {
                       }
                     })()}
                   </div>
-                  <p className="text-sm text-gray-600">{policy.insuranceCompany.name}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">{policy.insuranceCompany.name}</p>
                 </div>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => navigate(`/policies/${policy.id}/edit`)}
-                    className="p-2 text-primary-600 hover:bg-primary-50 rounded-lg transition"
+                    className="p-2 text-brand-600 dark:text-cyan-400 hover:bg-brand-50 dark:hover:bg-cyan-500/10 rounded-lg transition"
                     title="Edit Policy"
                   >
                     <Pencil className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => openNomineeModal(policy)}
-                    className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                    className="p-2 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-500/10 rounded-lg transition"
                     title="Manage Nominee Shares"
                   >
                     <Users className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(policy.id)}
-                    className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
+                    className="p-2 text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-500/10 rounded-lg transition"
                     title="Delete"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -406,26 +419,26 @@ export default function Policies() {
                 </div>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-600">Sum Assured</p>
-                  <p className="font-semibold text-gray-900">₹{parseFloat(policy.sumAssured).toLocaleString()}</p>
+                <div className="p-3 bg-gradient-to-br from-brand-50 to-cyan-50 dark:from-brand-950/30 dark:to-cyan-950/30 rounded-xl border border-brand-200/30 dark:border-brand-800/30">
+                  <p className="text-gray-600 dark:text-gray-400 font-semibold mb-1">Sum Assured</p>
+                  <p className="font-bold text-gradient-brand">₹{parseFloat(policy.sumAssured).toLocaleString()}</p>
                 </div>
-                <div>
-                  <p className="text-gray-600">Uploaded</p>
-                  <p className="font-semibold text-gray-900">
+                <div className="p-3 bg-gradient-to-br from-cyan-50 to-brand-50 dark:from-cyan-950/30 dark:to-brand-950/30 rounded-xl border border-cyan-200/30 dark:border-cyan-800/30">
+                  <p className="text-gray-600 dark:text-gray-400 font-semibold mb-1">Uploaded</p>
+                  <p className="font-bold text-gray-900 dark:text-white">
                     {format(new Date(policy.uploadedAt), 'MMM dd, yyyy')}
                   </p>
                 </div>
-                <div>
-                  <p className="text-gray-600">Nominees</p>
-                  <p className="font-semibold text-gray-900 flex items-center">
+                <div className="p-3 bg-gradient-to-br from-orange-50 to-yellow-50 dark:from-orange-950/30 dark:to-yellow-950/30 rounded-xl border border-orange-200/30 dark:border-orange-800/30">
+                  <p className="text-gray-600 dark:text-gray-400 font-semibold mb-1">Nominees</p>
+                  <p className="font-bold text-gray-900 dark:text-white flex items-center">
                     <Users className="w-4 h-4 mr-1" />
                     {policy.nominees.length}
                   </p>
                 </div>
-                <div>
-                  <p className="text-gray-600">Documents</p>
-                  <p className="font-semibold text-gray-900">
+                <div className="p-3 bg-gradient-to-br from-yellow-50 to-orange-50 dark:from-yellow-950/30 dark:to-orange-950/30 rounded-xl border border-yellow-200/30 dark:border-yellow-800/30">
+                  <p className="text-gray-600 dark:text-gray-400 font-semibold mb-1">Documents</p>
+                  <p className="font-bold text-gray-900 dark:text-white">
                     {policy.documents.filter((d) => d.isVerified).length}/{policy.documents.length} Verified
                   </p>
                 </div>

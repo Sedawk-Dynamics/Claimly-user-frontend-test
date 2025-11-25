@@ -85,7 +85,7 @@ export default function KycSection() {
   const statusBadge = () => {
     if (!kycStatus || kycStatus.status === 'PENDING') {
       return (
-        <span className="inline-flex items-center px-3 py-1 rounded-full bg-yellow-100 text-yellow-800 text-sm font-medium">
+        <span className="badge badge-warning">
           <Clock className="w-4 h-4 mr-2" />
           Pending Verification
         </span>
@@ -93,7 +93,7 @@ export default function KycSection() {
     }
 
     return (
-      <span className="inline-flex items-center px-3 py-1 rounded-full bg-green-100 text-green-700 text-sm font-medium">
+      <span className="badge badge-success">
         <CheckCircle className="w-4 h-4 mr-2" />
         KYC Completed
       </span>
@@ -147,53 +147,53 @@ export default function KycSection() {
     const isReverification = !doc.isVerified && doc.verifiedAt !== null && doc.verifiedAt !== undefined;
     const isRejected = doc.rejectedAt !== null && doc.rejectedAt !== undefined;
     const statusBadge = doc.isVerified ? (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+      <span className="badge badge-success">
         <CheckCircle className="w-3 h-3 mr-1" />
         Verified
       </span>
     ) : isRejected ? (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+      <span className="badge badge-danger">
         <XCircle className="w-3 h-3 mr-1" />
         Rejected
       </span>
     ) : isReverification ? (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
+      <span className="badge badge-danger">
         <RotateCcw className="w-3 h-3 mr-1" />
         Re-verification
       </span>
     ) : (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+      <span className="badge badge-warning">
         <Clock className="w-3 h-3 mr-1" />
         Pending
       </span>
     );
 
     return (
-      <div className="p-3 bg-white border border-gray-200 rounded-lg">
+      <div className="p-3 bg-white dark:bg-navy-800/50 border border-gray-200 dark:border-navy-700 rounded-lg">
         <div className="flex items-center justify-between mb-2">
           <div className="flex-1">
             <div className="flex items-center gap-3">
-              <FileText className="w-5 h-5 text-primary-600" />
+              <FileText className="w-5 h-5 text-brand-600 dark:text-cyan-400" />
               <div className="flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <p className="font-medium text-gray-800">{doc.documentName || label}</p>
+                  <p className="font-semibold text-gray-800 dark:text-white">{doc.documentName || label}</p>
                   {statusBadge}
                 </div>
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                   Uploaded {formatDate(doc.uploadedAt)}
                 </p>
                 {doc.isVerified && doc.verifiedAt && (
-                  <p className="text-xs text-green-600 mt-1">
+                  <p className="text-xs text-cyan-600 dark:text-cyan-400 mt-1">
                     Verified on {formatDate(doc.verifiedAt)}
                   </p>
                 )}
                 {isRejected && doc.rejectedAt && (
-                  <p className="text-xs text-red-600 mt-1">
+                  <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
                     Rejected on {formatDate(doc.rejectedAt)} • Please upload a new document
                   </p>
                 )}
                 {isReverification && doc.verifiedAt && (
-                  <p className="text-xs text-orange-600 mt-1">
+                  <p className="text-xs text-orange-600 dark:text-orange-400 mt-1">
                     Previously verified on {formatDate(doc.verifiedAt)} • Awaiting re-verification
                   </p>
                 )}
@@ -205,7 +205,7 @@ export default function KycSection() {
               href={getDocumentUrl(doc.documentUrl)}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center text-sm text-primary-600 hover:text-primary-700 font-medium"
+              className="inline-flex items-center text-sm text-brand-600 dark:text-cyan-400 hover:text-brand-700 dark:hover:text-cyan-300 font-semibold"
               title="View document"
             >
               <ExternalLink className="w-4 h-4" />
@@ -216,7 +216,7 @@ export default function KycSection() {
         {/* Update Document Section */}
         <div className="mt-3 pt-3 border-t border-gray-200">
           {!hasUpdateFile ? (
-            <label className="flex items-center gap-2 text-sm text-primary-600 hover:text-primary-700 cursor-pointer">
+            <label className="flex items-center gap-2 text-sm text-brand-600 dark:text-cyan-400 hover:text-brand-700 dark:hover:text-cyan-300 cursor-pointer font-semibold">
               <Edit2 className="w-4 h-4" />
               <span>Replace Document</span>
               <input
@@ -251,7 +251,7 @@ export default function KycSection() {
                     }
                   }}
                   disabled={isUpdating}
-                  className="px-3 py-1.5 text-xs bg-primary-600 text-white rounded hover:bg-primary-700 transition disabled:opacity-50"
+                  className="px-3 py-1.5 text-xs btn-brand transition disabled:opacity-50"
                 >
                   {isUpdating ? 'Updating...' : 'Update Document'}
                 </button>
@@ -274,17 +274,20 @@ export default function KycSection() {
   };
 
   return (
-    <section className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mt-8">
+    <section className="card p-6 sm:p-8 mt-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">KYC Verification</h2>
-          <p className="text-sm text-gray-600 mt-1">
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+            <div className="w-1 h-6 bg-gradient-brand rounded-full mr-3"></div>
+            KYC Verification
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
             Upload your Aadhaar and PAN documents to verify your identity.
           </p>
         </div>
         <button
           onClick={loadStatus}
-          className="inline-flex items-center text-sm text-primary-600 hover:text-primary-700"
+          className="inline-flex items-center text-sm font-semibold text-brand-600 dark:text-cyan-400 hover:text-brand-700 dark:hover:text-cyan-300 transition-colors"
           disabled={loadingStatus}
         >
           <RefreshCw className={`w-4 h-4 mr-2 ${loadingStatus ? 'animate-spin' : ''}`} />
@@ -295,14 +298,20 @@ export default function KycSection() {
       {statusBadge()}
 
       {error && (
-        <div className="mt-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm">
-          {error}
+        <div className="mt-4 bg-orange-500/20 border-2 border-orange-400 backdrop-blur-sm text-orange-900 dark:text-orange-200 px-4 py-3 rounded-lg text-sm shadow-glow-orange">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
+            <p className="font-medium">{error}</p>
+          </div>
         </div>
       )}
 
       {success && (
-        <div className="mt-4 bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg text-sm">
-          {success}
+        <div className="mt-4 bg-cyan-500/20 border-2 border-cyan-400 backdrop-blur-sm text-cyan-900 dark:text-cyan-200 px-4 py-3 rounded-lg text-sm shadow-glow-cyan">
+          <div className="flex items-center space-x-2">
+            <div className="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+            <p className="font-medium">{success}</p>
+          </div>
         </div>
       )}
 
@@ -382,7 +391,7 @@ export default function KycSection() {
         <button
           onClick={handleUpload}
           disabled={uploading}
-          className="mt-4 inline-flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mt-4 btn-brand inline-flex items-center justify-center"
         >
           {uploading ? 'Uploading...' : 'Submit Documents'}
         </button>

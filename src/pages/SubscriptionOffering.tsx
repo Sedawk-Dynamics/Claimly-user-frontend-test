@@ -34,57 +34,65 @@ export default function SubscriptionOffering() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="text-center mb-12">
-        <div className="inline-flex items-center justify-center w-16 h-16 bg-primary-100 rounded-full mb-4">
-          <Shield className="w-8 h-8 text-primary-600" />
+    <div className="space-y-6 sm:space-y-8">
+      <div className="text-center">
+        <div className="relative inline-block mb-6">
+          <div className="absolute inset-0 bg-gradient-sunset rounded-full blur-xl opacity-60 animate-pulse-glow-orange"></div>
+          <div className="relative p-4 bg-gradient-to-br from-orange-400 to-yellow-400 rounded-full shadow-glow-orange-lg">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
         </div>
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Choose Your Plan</h1>
-        <p className="text-xl text-gray-600">
+        <h1 className="text-3xl sm:text-4xl font-bold text-gradient-brand mb-4">Choose Your Plan</h1>
+        <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400">
           Select a subscription plan to start managing your insurance policies
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
         {plans.map((plan) => (
           <div
             key={plan.name}
-            className={`bg-white rounded-lg shadow-lg p-8 border-2 ${
-              plan.popular ? 'border-primary-500 relative' : 'border-gray-200'
-            }`}
+            className={`card p-6 sm:p-8 relative overflow-hidden group border-2 ${
+              plan.popular 
+                ? 'border-orange-400/50 hover:border-orange-400 shadow-glow-orange' 
+                : 'border-cyan-400/30 hover:border-cyan-400/50'
+            } transition-all duration-300 hover:-translate-y-2`}
           >
             {plan.popular && (
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                <span className="bg-primary-500 text-white px-4 py-1 rounded-full text-sm font-medium">
-                  Most Popular
-                </span>
-              </div>
+              <>
+                <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
+                  <span className="badge badge-orange px-4 py-1 shadow-glow-orange">
+                    Most Popular
+                  </span>
+                </div>
+                <div className="absolute inset-0 bg-gradient-sunset opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+              </>
             )}
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-bold text-gray-900 mb-2">{plan.name}</h3>
-              <div className="flex items-baseline justify-center">
-                <span className="text-4xl font-bold text-gray-900">₹{plan.price}</span>
-                <span className="text-gray-600 ml-2">/year</span>
+            <div className="relative">
+              <div className="text-center mb-6">
+                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">{plan.name}</h3>
+                <div className="flex items-baseline justify-center">
+                  <span className="text-4xl sm:text-5xl font-bold text-gradient-brand">₹{plan.price}</span>
+                  <span className="text-gray-600 dark:text-gray-400 ml-2 text-lg">/year</span>
+                </div>
               </div>
+              <ul className="space-y-3 mb-8">
+                {plan.features.map((feature, index) => (
+                  <li key={index} className="flex items-start">
+                    <div className="relative p-1 bg-gradient-to-br from-cyan-400 to-brand-500 rounded-lg mr-3 mt-0.5 flex-shrink-0 shadow-glow-cyan">
+                      <Check className="w-4 h-4 text-white" />
+                    </div>
+                    <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                  </li>
+                ))}
+              </ul>
+              <button
+                onClick={() => handleSelectPlan(plan.name, plan.price)}
+                className={`w-full ${plan.popular ? 'btn-orange' : 'btn-brand'} text-lg`}
+              >
+                Select {plan.name}
+              </button>
             </div>
-            <ul className="space-y-4 mb-8">
-              {plan.features.map((feature, index) => (
-                <li key={index} className="flex items-start">
-                  <Check className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                  <span className="text-gray-700">{feature}</span>
-                </li>
-              ))}
-            </ul>
-            <button
-              onClick={() => handleSelectPlan(plan.name, plan.price)}
-              className={`w-full py-3 rounded-lg font-medium transition ${
-                plan.popular
-                  ? 'bg-primary-600 text-white hover:bg-primary-700'
-                  : 'bg-gray-100 text-gray-900 hover:bg-gray-200'
-              }`}
-            >
-              Select {plan.name}
-            </button>
           </div>
         ))}
       </div>

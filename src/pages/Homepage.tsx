@@ -30,80 +30,124 @@ export default function Homepage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+      <div className="flex flex-col items-center justify-center h-64 space-y-4">
+        <div className="relative">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-cyan-200 dark:border-cyan-900 border-t-brand-500 dark:border-t-cyan-400"></div>
+          <div className="absolute inset-0 rounded-full bg-gradient-brand opacity-20 blur-xl animate-pulse-glow"></div>
         </div>
+        <p className="text-gray-600 dark:text-gray-400 font-medium animate-pulse">Loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Welcome to Claimly</h1>
-        <p className="text-gray-600 mt-2">Manage your insurance policies and nominees</p>
+    <div className="space-y-6 sm:space-y-8">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl sm:text-4xl font-bold text-gradient-brand mb-2">Welcome to Claimly</h1>
+        <p className="text-gray-600 dark:text-gray-400">Manage your insurance policies and nominees</p>
       </div>
 
       {/* Banners Section */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4 flex items-center">
+      <div>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+          <div className="w-1 h-6 bg-gradient-brand rounded-full mr-3"></div>
           <ImageIcon className="w-5 h-5 mr-2" />
           Banners
         </h2>
-        <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-lg p-8 text-white">
-          <h3 className="text-2xl font-bold mb-2">Secure Your Future</h3>
-          <p className="text-primary-100">
-            Manage all your insurance policies in one place. Add nominees and ensure your loved ones are protected.
-          </p>
+        <div className="card p-8 bg-gradient-brand text-white relative overflow-hidden group">
+          <div className="absolute inset-0 bg-gradient-fire opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+          <div className="relative">
+            <h3 className="text-2xl font-bold mb-2">Secure Your Future</h3>
+            <p className="text-white/90">
+              Manage all your insurance policies in one place. Add nominees and ensure your loved ones are protected.
+            </p>
+          </div>
         </div>
       </div>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div
-          onClick={() => navigate('/profile')}
-          className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <User className="w-8 h-8 text-primary-600" />
+      <div>
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+          <div className="w-1 h-6 bg-gradient-sunset rounded-full mr-3"></div>
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div
+            onClick={() => navigate('/profile')}
+            className="card card-hover p-5 sm:p-6 group relative overflow-hidden border border-transparent hover:border-cyan-400/30 cursor-pointer"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-500 to-cyan-400 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+            <div className="relative flex items-start space-x-4">
+              <div className="relative p-3 bg-gradient-to-br from-brand-500 to-cyan-400 rounded-xl shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 flex-shrink-0">
+                <User className="w-6 h-6 text-white" />
+                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 rounded-xl transition-opacity duration-300"></div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1 group-hover:text-gradient-brand transition-all">
+                  My Profile
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">View and update your profile information</p>
+              </div>
+            </div>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">My Profile</h3>
-          <p className="text-gray-600 text-sm">View and update your profile information</p>
-        </div>
 
-        <div
-          onClick={() => navigate('/nominees')}
-          className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <Users className="w-8 h-8 text-primary-600" />
+          <div
+            onClick={() => navigate('/nominees')}
+            className="card card-hover p-5 sm:p-6 group relative overflow-hidden border border-transparent hover:border-cyan-400/30 cursor-pointer"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-brand-500 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+            <div className="relative flex items-start space-x-4">
+              <div className="relative p-3 bg-gradient-to-br from-cyan-400 to-brand-500 rounded-xl shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 flex-shrink-0">
+                <Users className="w-6 h-6 text-white" />
+                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 rounded-xl transition-opacity duration-300"></div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1 group-hover:text-gradient-brand transition-all">
+                  Nominees List
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">Manage your nominees and their documents</p>
+              </div>
+            </div>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">Nominees List</h3>
-          <p className="text-gray-600 text-sm">Manage your nominees and their documents</p>
-        </div>
 
-        <div
-          onClick={() => navigate('/subscription')}
-          className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <CreditCard className="w-8 h-8 text-primary-600" />
+          <div
+            onClick={() => navigate('/subscription')}
+            className="card card-hover p-5 sm:p-6 group relative overflow-hidden border border-transparent hover:border-orange-400/30 cursor-pointer"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-yellow-400 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+            <div className="relative flex items-start space-x-4">
+              <div className="relative p-3 bg-gradient-to-br from-orange-400 to-yellow-400 rounded-xl shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 flex-shrink-0">
+                <CreditCard className="w-6 h-6 text-white" />
+                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 rounded-xl transition-opacity duration-300"></div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1 group-hover:text-gradient-brand transition-all">
+                  My Subscription
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">View your subscription status and history</p>
+              </div>
+            </div>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">My Subscription</h3>
-          <p className="text-gray-600 text-sm">View your subscription status and history</p>
-        </div>
 
-        <div
-          onClick={() => navigate('/policies')}
-          className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow cursor-pointer border border-gray-200"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <FileText className="w-8 h-8 text-primary-600" />
+          <div
+            onClick={() => navigate('/policies')}
+            className="card card-hover p-5 sm:p-6 group relative overflow-hidden border border-transparent hover:border-cyan-400/30 cursor-pointer"
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-cyan-400 to-brand-600 opacity-0 group-hover:opacity-5 transition-opacity duration-300"></div>
+            <div className="relative flex items-start space-x-4">
+              <div className="relative p-3 bg-gradient-to-br from-cyan-400 to-brand-600 rounded-xl shadow-lg group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 flex-shrink-0">
+                <FileText className="w-6 h-6 text-white" />
+                <div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20 rounded-xl transition-opacity duration-300"></div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base sm:text-lg font-bold text-gray-900 dark:text-white mb-1 group-hover:text-gradient-brand transition-all">
+                  My Policies
+                </h3>
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">View and manage your insurance policies</p>
+              </div>
+            </div>
           </div>
-          <h3 className="text-lg font-semibold text-gray-900 mb-2">My Policies</h3>
-          <p className="text-gray-600 text-sm">View and manage your insurance policies</p>
         </div>
       </div>
     </div>
