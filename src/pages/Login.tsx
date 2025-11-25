@@ -13,7 +13,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [name, setName] = useState('');
-  const [dob, setDob] = useState('');
+  const [email, setEmail] = useState('');
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<any>(null);
   const [idToken, setIdToken] = useState<string>('');
   const navigate = useNavigate();
@@ -94,7 +94,7 @@ export default function Login() {
         }
       }
 
-      const response = await authService.verifyOTP(firebaseIdToken, phoneNumber, name, dob);
+      const response = await authService.verifyOTP(firebaseIdToken, phoneNumber, name, email);
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
       navigate('/');
@@ -218,23 +218,23 @@ export default function Login() {
               </div>
 
               <div>
-                <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-2">
-                  Date of Birth
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address
                 </label>
                 <input
-                  id="dob"
-                  type="date"
-                  value={dob}
-                  onChange={(e) => setDob(e.target.value)}
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required
-                  max={new Date().toISOString().split('T')[0]}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+                  placeholder="john.doe@example.com"
                 />
               </div>
 
               <button
                 type="submit"
-                disabled={loading || !name || !dob}
+                disabled={loading || !name || !email}
                 className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 {loading ? 'Creating Account...' : 'Complete Sign Up'}

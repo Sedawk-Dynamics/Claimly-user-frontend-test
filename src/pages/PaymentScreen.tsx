@@ -51,6 +51,10 @@ export default function PaymentScreen() {
         transactionDate: new Date().toISOString(),
       });
 
+      // Clear subscription status cache to force refresh
+      const CACHE_KEY = 'subscription-status-cache';
+      sessionStorage.removeItem(CACHE_KEY);
+
       // Navigate to payment success
       navigate('/payment-success', { state: { planName, amount, paymentId } });
     } catch (err: any) {

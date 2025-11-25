@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { CheckCircle, Home } from 'lucide-react';
+import { userService } from '../services/user.service';
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
@@ -8,6 +9,15 @@ export default function PaymentSuccess() {
   const { planName, amount, paymentId } = location.state || {};
 
   useEffect(() => {
+    // Clear subscription status cache to force refresh
+    const CACHE_KEY = 'subscription-status-cache';
+    sessionStorage.removeItem(CACHE_KEY);
+    
+    // Refresh subscription status to ensure it's up to date
+    userService.getSubscription().catch((error) => {
+      console.error('Error refreshing subscription status:', error);
+    });
+
     // Auto-redirect to homepage after 5 seconds
     const timer = setTimeout(() => {
       navigate('/');
@@ -49,7 +59,16 @@ export default function PaymentSuccess() {
         )}
 
         <button
-          onClick={() => navigate('/')}
+          onClick={() => {
+            // Clear cache before navigating
+            const CACHE_KEY = 'subscription-status-cache';
+            sessionStorage.removeItem(CACHE_KEY);
+            // Refresh subscription status
+            userService.getSubscription().catch((error) => {
+              console.error('Error refreshing subscription status:', error);
+            });
+            navigate('/');
+          }}
           className="inline-flex items-center bg-primary-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 transition"
         >
           <Home className="w-5 h-5 mr-2" />
