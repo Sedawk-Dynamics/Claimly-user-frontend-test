@@ -3,7 +3,7 @@ import { LoginResponse, User } from '../types';
 
 export const authService = {
   async verifyOTP(idToken: string, mobileNumber: string, name?: string, email?: string, deviceId?: string): Promise<LoginResponse> {
-    const response = await api.post<{ success: boolean; data: LoginResponse }>('/auth/verify-otp', {
+    const response = await api.post<{ success: boolean; data: LoginResponse }>('/auth/register', {
       idToken,
       mobileNumber,
       name,
