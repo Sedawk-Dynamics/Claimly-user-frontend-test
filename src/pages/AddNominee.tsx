@@ -103,13 +103,13 @@ export default function AddNominee() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-gray-900">Add Nominee</h1>
             <div className="flex items-center space-x-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-brand-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                 {step > 1 ? <Check className="w-5 h-5" /> : '1'}
               </div>
               <div className="w-12 h-1 bg-gray-200">
-                <div className={`h-full ${step >= 2 ? 'bg-primary-600' : ''}`} style={{ width: step >= 2 ? '100%' : '0%' }}></div>
+                <div className={`h-full ${step >= 2 ? 'bg-brand-600' : ''}`} style={{ width: step >= 2 ? '100%' : '0%' }}></div>
               </div>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-brand-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                 {step > 2 ? <Check className="w-5 h-5" /> : '2'}
               </div>
             </div>
@@ -209,7 +209,7 @@ export default function AddNominee() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="w-full bg-brand-600 text-white py-3 rounded-lg font-medium hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
               {loading ? 'Saving...' : 'Next: Upload Documents'}
             </button>
@@ -283,7 +283,7 @@ export default function AddNominee() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="flex-1 bg-brand-600 text-white py-3 rounded-lg font-medium hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 {loading ? 'Uploading...' : 'Complete'}
               </button>

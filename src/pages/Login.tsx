@@ -2,6 +2,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../services/auth.service';
 import { auth, setupRecaptcha, sendOTP, verifyOTP } from '../config/firebase';
+import { useTheme } from '../contexts/ThemeContext';
 import { Phone, MessageSquare } from 'lucide-react';
 import logo from '../logo/claimly logo png.png';
 
@@ -17,6 +18,7 @@ export default function Login() {
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<any>(null);
   const [idToken, setIdToken] = useState<string>('');
   const navigate = useNavigate();
+  const { setTheme } = useTheme();
 
   useEffect(() => {
     // Setup reCAPTCHA
@@ -29,6 +31,15 @@ export default function Login() {
       }
     };
   }, []);
+
+  // Force light mode on login page
+  useEffect(() => {
+    setTheme('light');
+    // Force light mode on document root as well
+    const root = window.document.documentElement;
+    root.classList.remove('dark');
+    root.classList.add('light');
+  }, [setTheme]);
 
   const handlePhoneSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -122,18 +133,17 @@ export default function Login() {
           <div className="text-center mb-8">
             <div className="flex justify-center mb-6">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-sunset rounded-2xl blur-xl opacity-60 animate-pulse-glow-orange"></div>
-                <div className="relative p-4 bg-gradient-to-br from-orange-400 to-yellow-400 rounded-2xl shadow-glow-orange-lg">
+                <div className="relative p-4 bg-gray-100 dark:bg-gray-800 rounded-2xl">
                   <img src={logo} alt="Claimly" className="h-14 sm:h-16 w-auto" />
                 </div>
               </div>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 dark:text-white mb-3 animate-slide-in">
+            <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-3 animate-slide-in">
               {step === 'phone' && 'Welcome Back'}
               {step === 'otp' && 'Verify OTP'}
               {step === 'signup' && 'Complete Profile'}
             </h1>
-            <p className="text-base sm:text-lg text-gray-700 dark:text-gray-300 font-medium animate-slide-in">
+            <p className="text-base sm:text-lg text-gray-700 font-medium animate-slide-in">
               {step === 'phone' && 'Sign in to your account'}
               {step === 'otp' && 'Enter the OTP sent to your phone'}
               {step === 'signup' && 'Complete your profile to continue'}
@@ -141,7 +151,7 @@ export default function Login() {
           </div>
 
           {error && (
-            <div className="bg-orange-500/20 border-2 border-orange-400 backdrop-blur-sm text-orange-900 dark:text-orange-200 px-4 py-3 rounded-lg text-sm mb-6 animate-slide-in shadow-glow-orange">
+            <div className="bg-orange-500/20 border-2 border-orange-400 backdrop-blur-sm text-orange-900 px-4 py-3 rounded-lg text-sm mb-6 animate-slide-in shadow-glow-orange">
               <div className="flex items-center space-x-2">
                 <div className="w-2 h-2 bg-orange-400 rounded-full animate-pulse"></div>
                 <p className="font-medium">{error}</p>
@@ -152,18 +162,18 @@ export default function Login() {
           {step === 'phone' && (
             <form onSubmit={handlePhoneSubmit} className="space-y-6 animate-slide-up">
               <div className="space-y-2">
-                <label htmlFor="phone" className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                <label htmlFor="phone" className="block text-sm font-semibold text-gray-800 mb-2">
                   Phone Number
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-cyan-700 dark:text-cyan-300 w-5 h-5 drop-shadow-md" />
+                  <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-black w-5 h-5 z-10" />
                   <input
                     id="phone"
                     type="tel"
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     required
-                    className="w-full pl-12 pr-4 py-3.5 bg-white/10 dark:bg-navy-900/50 border-2 border-cyan-400/30 rounded-xl text-gray-900 dark:text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all duration-300 backdrop-blur-sm hover:border-cyan-400/50"
+                    className="w-full pl-12 pr-4 py-3.5 bg-white/90 border-2 border-cyan-400/30 rounded-xl text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all duration-300 backdrop-blur-sm hover:border-cyan-400/50"
                     placeholder="9876543210"
                   />
                 </div>
@@ -195,11 +205,11 @@ export default function Login() {
           {step === 'otp' && (
             <form onSubmit={handleOTPSubmit} className="space-y-6 animate-slide-up">
               <div className="space-y-2">
-                <label htmlFor="otp" className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                <label htmlFor="otp" className="block text-sm font-semibold text-gray-800 mb-2">
                   Enter OTP
                 </label>
                 <div className="relative">
-                  <MessageSquare className="absolute left-4 top-1/2 transform -translate-y-1/2 text-cyan-700 dark:text-cyan-300 w-5 h-5 drop-shadow-md" />
+                  <MessageSquare className="absolute left-4 top-1/2 transform -translate-y-1/2 text-black w-5 h-5 z-10" />
                   <input
                     id="otp"
                     type="text"
@@ -207,11 +217,11 @@ export default function Login() {
                     onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                     required
                     maxLength={6}
-                    className="w-full pl-12 pr-4 py-3.5 bg-white/10 dark:bg-navy-900/50 border-2 border-cyan-400/30 rounded-xl text-gray-900 dark:text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all duration-300 backdrop-blur-sm hover:border-cyan-400/50 text-center text-2xl tracking-widest font-bold"
+                    className="w-full pl-12 pr-4 py-3.5 bg-white/90 border-2 border-cyan-400/30 rounded-xl text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all duration-300 backdrop-blur-sm hover:border-cyan-400/50 text-center text-2xl tracking-widest font-bold"
                     placeholder="000000"
                   />
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">OTP sent to {phoneNumber}</p>
+                <p className="text-sm text-gray-600 mt-2">OTP sent to {phoneNumber}</p>
               </div>
 
               <button
@@ -241,7 +251,7 @@ export default function Login() {
                   setStep('phone');
                   setOtp('');
                 }}
-                className="w-full text-cyan-600 dark:text-cyan-400 py-2 text-sm font-semibold hover:text-cyan-700 dark:hover:text-cyan-300 transition-colors"
+                className="w-full text-cyan-600 py-2 text-sm font-semibold hover:text-cyan-700 transition-colors"
               >
                 Change Phone Number
               </button>
@@ -251,7 +261,7 @@ export default function Login() {
           {step === 'signup' && (
             <form onSubmit={handleSignupSubmit} className="space-y-6 animate-slide-up">
               <div className="space-y-2">
-                <label htmlFor="name" className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                <label htmlFor="name" className="block text-sm font-semibold text-gray-800 mb-2">
                   Full Name
                 </label>
                 <input
@@ -260,13 +270,13 @@ export default function Login() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   required
-                  className="w-full px-4 py-3.5 bg-white/10 dark:bg-navy-900/50 border-2 border-cyan-400/30 rounded-xl text-gray-900 dark:text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all duration-300 backdrop-blur-sm hover:border-cyan-400/50"
+                  className="w-full px-4 py-3.5 bg-white/90 border-2 border-cyan-400/30 rounded-xl text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all duration-300 backdrop-blur-sm hover:border-cyan-400/50"
                   placeholder="John Doe"
                 />
               </div>
 
               <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-800 dark:text-gray-200 mb-2">
+                <label htmlFor="email" className="block text-sm font-semibold text-gray-800 mb-2">
                   Email Address
                 </label>
                 <input
@@ -275,7 +285,7 @@ export default function Login() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
-                  className="w-full px-4 py-3.5 bg-white/10 dark:bg-navy-900/50 border-2 border-cyan-400/30 rounded-xl text-gray-900 dark:text-gray-100 placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all duration-300 backdrop-blur-sm hover:border-cyan-400/50"
+                  className="w-full px-4 py-3.5 bg-white/90 border-2 border-cyan-400/30 rounded-xl text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all duration-300 backdrop-blur-sm hover:border-cyan-400/50"
                   placeholder="john.doe@example.com"
                 />
               </div>
@@ -302,7 +312,7 @@ export default function Login() {
 
           {/* Decorative Bottom Border */}
           <div className="mt-8 pt-6 border-t border-cyan-400/20">
-            <p className="text-center text-sm text-gray-700 dark:text-gray-300">
+            <p className="text-center text-sm text-gray-700">
               Powered by <span className="text-gradient-sunset font-bold">Claimly</span>
             </p>
           </div>

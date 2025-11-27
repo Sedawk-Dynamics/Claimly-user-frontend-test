@@ -219,7 +219,7 @@ export default function AddPolicy() {
   if (subscriptionChecking || kycChecking) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
       </div>
     );
   }
@@ -239,19 +239,19 @@ export default function AddPolicy() {
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold text-gray-900">Add Policy</h1>
             <div className="flex items-center space-x-2">
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-brand-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                 {step > 1 ? <Check className="w-5 h-5" /> : '1'}
               </div>
               <div className="w-12 h-1 bg-gray-200">
-                <div className={`h-full ${step >= 2 ? 'bg-primary-600' : ''}`} style={{ width: step >= 2 ? '100%' : '0%' }}></div>
+                <div className={`h-full ${step >= 2 ? 'bg-brand-600' : ''}`} style={{ width: step >= 2 ? '100%' : '0%' }}></div>
               </div>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-brand-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                 {step > 2 ? <Check className="w-5 h-5" /> : '2'}
               </div>
               <div className="w-12 h-1 bg-gray-200">
-                <div className={`h-full ${step >= 3 ? 'bg-primary-600' : ''}`} style={{ width: step >= 3 ? '100%' : '0%' }}></div>
+                <div className={`h-full ${step >= 3 ? 'bg-brand-600' : ''}`} style={{ width: step >= 3 ? '100%' : '0%' }}></div>
               </div>
-              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-primary-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-brand-600 text-white' : 'bg-gray-200 text-gray-600'}`}>
                 {step > 3 ? <Check className="w-5 h-5" /> : '3'}
               </div>
             </div>
@@ -294,7 +294,7 @@ export default function AddPolicy() {
                   value={formData.insuranceCompanyId}
                   onChange={(e) => setFormData({ ...formData, insuranceCompanyId: e.target.value })}
                   required
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition"
                 >
                   <option value="">Select Insurance Company</option>
                   {companies.map((company) => (
@@ -342,7 +342,7 @@ export default function AddPolicy() {
             <button
               type="submit"
               disabled={loading || companies.length === 0}
-              className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="w-full bg-brand-600 text-white py-3 rounded-lg font-medium hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
               {loading ? 'Saving...' : 'Next: Upload Documents'}
             </button>
@@ -359,7 +359,7 @@ export default function AddPolicy() {
                 <div className="space-y-1 text-center">
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />
                   <div className="flex text-sm text-gray-600">
-                    <label className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
+                    <label className="relative cursor-pointer bg-white rounded-md font-medium text-brand-600 hover:text-brand-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-brand-500">
                       <span>Upload files</span>
                       <input
                         type="file"
@@ -394,7 +394,7 @@ export default function AddPolicy() {
               <button
                 type="submit"
                 disabled={loading || documents.length === 0}
-                className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="flex-1 bg-brand-600 text-white py-3 rounded-lg font-medium hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 {loading ? 'Uploading...' : nominees.length > 0 ? 'Next: Select Nominees' : 'Complete'}
               </button>
@@ -425,7 +425,7 @@ export default function AddPolicy() {
                   <button
                     type="button"
                     onClick={() => navigate('/nominees/add')}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                    className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
                   >
                     Add Nominee
                   </button>
@@ -436,7 +436,7 @@ export default function AddPolicy() {
                   <button
                     type="button"
                     onClick={handleAddNominee}
-                    className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                    className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
                   >
                     Add Nominee
                   </button>
@@ -522,7 +522,7 @@ export default function AddPolicy() {
               <button
                 type="submit"
                 disabled={loading || totalShare !== 100 || selectedNominees.length === 0}
-                className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                className="flex-1 bg-brand-600 text-white py-3 rounded-lg font-medium hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
                 {loading ? 'Saving...' : 'Complete'}
               </button>

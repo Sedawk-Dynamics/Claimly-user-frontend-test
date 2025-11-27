@@ -567,7 +567,7 @@ export default function Policies() {
                   <p className="text-sm font-medium text-gray-700 mb-2">Nominees:</p>
                   <div className="flex flex-wrap gap-2">
                     {policy.nominees.map((pn) => (
-                      <span key={pn.id} className="px-2 py-1 bg-primary-50 text-primary-700 rounded text-xs">
+                      <span key={pn.id} className="px-2 py-1 bg-brand-50 text-brand-700 rounded text-xs">
                         {pn.nominee.name} ({pn.sharePercentage}%)
                       </span>
                     ))}
@@ -605,7 +605,7 @@ export default function Policies() {
 
               {modalLoading ? (
                 <div className="flex items-center justify-center py-12">
-                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-primary-600"></div>
+                  <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-600"></div>
                 </div>
               ) : availableNominees.length === 0 && selectedNominees.length === 0 ? (
                 <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
@@ -617,7 +617,7 @@ export default function Policies() {
                       closeNomineeModal();
                       navigate('/nominees/add');
                     }}
-                    className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                    className="inline-flex items-center px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
                   >
                     Add Nominee
                   </button>
@@ -632,7 +632,7 @@ export default function Policies() {
                       disabled={!canAddMoreNominees}
                       className={`text-sm font-medium transition ${
                         canAddMoreNominees
-                          ? 'text-primary-600 hover:text-primary-700'
+                          ? 'text-brand-600 hover:text-brand-700'
                           : 'text-gray-400 cursor-not-allowed'
                       }`}
                     >
@@ -660,7 +660,7 @@ export default function Policies() {
                               <select
                                 value={selected.nomineeId}
                                 onChange={(e) => handleNomineeSelectionChange(index, e.target.value)}
-                                className="flex-1 mr-4 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                className="flex-1 mr-4 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
                               >
                                 {availableForRow.map((nominee) => (
                                   <option key={nominee.id} value={nominee.id}>
@@ -687,7 +687,7 @@ export default function Policies() {
                                 step="0.01"
                                 value={selected.sharePercentage.toString()}
                                 onChange={(e) => handleShareChange(index, parseFloat(e.target.value) || 0)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
                               />
                             </div>
                           </div>
@@ -724,7 +724,7 @@ export default function Policies() {
               <button
                 onClick={handleSaveNomineeShares}
                 disabled={modalSaving || modalLoading || selectedNominees.length === 0}
-                className="px-4 py-2 rounded-lg bg-primary-600 text-white hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {modalSaving ? 'Saving...' : 'Save Changes'}
               </button>

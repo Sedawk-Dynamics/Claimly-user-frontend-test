@@ -68,8 +68,7 @@ export default function Layout() {
           <div className="flex items-center justify-between h-20 px-6 border-b border-cyan-500/20 bg-gradient-to-r from-brand-600/10 to-cyan-500/10">
             <div className="flex items-center space-x-3">
               <div className="relative">
-                <div className="absolute inset-0 bg-gradient-sunset rounded-lg blur-md opacity-75 animate-pulse-glow-orange"></div>
-                <div className="relative p-2 bg-gradient-to-br from-orange-400 to-yellow-400 rounded-lg">
+                <div className="relative p-2 bg-gray-100 dark:bg-gray-800 rounded-lg">
                   <img src={logo} alt="Claimly" className="h-8 w-auto" />
                 </div>
               </div>

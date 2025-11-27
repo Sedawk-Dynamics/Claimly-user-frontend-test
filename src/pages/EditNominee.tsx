@@ -77,7 +77,7 @@ export default function EditNominee() {
   if (checking || loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
       </div>
     );
   }
@@ -114,7 +114,7 @@ export default function EditNominee() {
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition"
               placeholder="Enter nominee name"
             />
           </div>
@@ -128,7 +128,7 @@ export default function EditNominee() {
               value={formData.relationship}
               onChange={(e) => setFormData({ ...formData, relationship: e.target.value as Relationship })}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition"
             >
               <option value="SPOUSE">Spouse</option>
               <option value="CHILD">Child</option>
@@ -155,7 +155,7 @@ export default function EditNominee() {
               }
               required
               maxLength={10}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition"
               placeholder="9876543210"
             />
           </div>
@@ -169,7 +169,7 @@ export default function EditNominee() {
               type="email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition"
               placeholder="nominee@example.com"
             />
           </div>
@@ -183,7 +183,7 @@ export default function EditNominee() {
               value={formData.address}
               onChange={(e) => setFormData({ ...formData, address: e.target.value })}
               rows={3}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition"
               placeholder="Enter address"
             />
           </div>
@@ -192,7 +192,7 @@ export default function EditNominee() {
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 flex items-center justify-center px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="flex-1 flex items-center justify-center px-6 py-3 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
               <Save className="w-4 h-4 mr-2" />
               {saving ? 'Saving...' : 'Save Changes'}

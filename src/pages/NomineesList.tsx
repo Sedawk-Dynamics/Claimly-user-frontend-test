@@ -330,7 +330,7 @@ export default function NomineesList() {
                               </div>
                               <div className="mt-2 pt-2 border-t border-gray-300">
                                 {!hasUpdateFile ? (
-                                  <label className="flex items-center gap-2 text-xs text-primary-600 hover:text-primary-700 cursor-pointer">
+                                  <label className="flex items-center gap-2 text-xs text-brand-600 hover:text-brand-700 cursor-pointer">
                                     <Edit2 className="w-3 h-3" />
                                     <span>Replace</span>
                                     <input

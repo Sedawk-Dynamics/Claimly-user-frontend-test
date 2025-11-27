@@ -191,7 +191,7 @@ export default function EditPolicy() {
   if (subscriptionChecking || loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>
       </div>
     );
   }
@@ -258,7 +258,7 @@ export default function EditPolicy() {
                     value={formData.insuranceCompanyId}
                     onChange={(e) => setFormData({ ...formData, insuranceCompanyId: e.target.value })}
                     required
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition"
                   >
                     <option value="">Select Insurance Company</option>
                     {companies.map((company) => (
@@ -350,7 +350,7 @@ export default function EditPolicy() {
                 <div className="space-y-1 text-center">
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />
                   <div className="flex text-sm text-gray-600">
-                    <label className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
+                    <label className="relative cursor-pointer bg-white rounded-md font-medium text-brand-600 hover:text-brand-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-brand-500">
                       <span>Upload files</span>
                       <input
                         type="file"
@@ -385,7 +385,7 @@ export default function EditPolicy() {
               <button
                 type="button"
                 onClick={handleAddNominee}
-                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
+                className="text-sm text-brand-600 hover:text-brand-700 font-medium"
               >
                 + Add Nominee
               </button>
@@ -397,7 +397,7 @@ export default function EditPolicy() {
                 <button
                   type="button"
                   onClick={() => navigate('/nominees/add')}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                  className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
                 >
                   Add Nominee
                 </button>
@@ -408,7 +408,7 @@ export default function EditPolicy() {
                 <button
                   type="button"
                   onClick={handleAddNominee}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+                  className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
                 >
                   Add Nominee
                 </button>
@@ -431,7 +431,7 @@ export default function EditPolicy() {
                             updated[index].nomineeId = e.target.value;
                             setSelectedNominees(updated);
                           }}
-                          className="flex-1 mr-4 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                          className="flex-1 mr-4 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
                         >
                           {nominee && <option value={nominee.id}>{nominee.name} ({nominee.relationship})</option>}
                           {availableNominees.map((n) => (
@@ -457,7 +457,7 @@ export default function EditPolicy() {
                           min="0"
                           max="100"
                           step="0.01"
-                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
                         />
                       </div>
                     </div>
@@ -495,7 +495,7 @@ export default function EditPolicy() {
             <button
               type="submit"
               disabled={saving || (selectedNominees.length > 0 && totalShare !== 100)}
-              className="flex-1 bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="flex-1 bg-brand-600 text-white py-3 rounded-lg font-medium hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
               {saving ? 'Saving...' : 'Save Changes'}
             </button>
