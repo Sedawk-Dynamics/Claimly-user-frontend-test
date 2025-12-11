@@ -73,8 +73,19 @@ export default function Login() {
         localStorage.setItem('user', JSON.stringify(response.user));
         navigate('/');
       } catch (loginError: any) {
-        // If user doesn't exist, show signup form
-        if (loginError.response?.status === 404 || loginError.response?.status === 400) {
+        // Only show signup form if error indicates user doesn't exist (name/email required for new users)
+        const errorMessage = loginError.response?.data?.error || loginError.message || '';
+        const isNewUserError = errorMessage.includes('Name and email are required') || 
+                              errorMessage.includes('required for new users') ||
+                              (loginError.response?.status === 400 && errorMessage.includes('new user'));
+        
+        // If mobile number already registered, user exists - don't show signup form, show error
+        if (errorMessage.includes('Mobile number already registered')) {
+          setError('This mobile number is already registered. Please contact support if you need assistance.');
+          return;
+        }
+        
+        if (isNewUserError) {
           setStep('signup');
         } else {
           throw loginError;

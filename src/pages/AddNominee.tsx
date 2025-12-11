@@ -54,27 +54,41 @@ export default function AddNominee() {
     setLoading(true);
 
     try {
+      // Upload documents if provided
+      const uploadPromises = [];
+      
       if (documents.nomineeId) {
-        await nomineeDocumentService.uploadDocument(
-          nomineeId,
-          documents.nomineeId,
-          'NOMINEE_ID',
-          documents.nomineeId.name
+        uploadPromises.push(
+          nomineeDocumentService.uploadDocument(
+            nomineeId,
+            documents.nomineeId,
+            'NOMINEE_ID',
+            documents.nomineeId.name
+          )
         );
       }
 
       if (documents.addressProof) {
-        await nomineeDocumentService.uploadDocument(
-          nomineeId,
-          documents.addressProof,
-          'ADDRESS_PROOF',
-          documents.addressProof.name
+        uploadPromises.push(
+          nomineeDocumentService.uploadDocument(
+            nomineeId,
+            documents.addressProof,
+            'ADDRESS_PROOF',
+            documents.addressProof.name
+          )
         );
       }
 
+      // Wait for all uploads to complete (if any)
+      if (uploadPromises.length > 0) {
+        await Promise.all(uploadPromises);
+      }
+
+      // Navigate even if no documents were uploaded (documents are optional)
       navigate('/nominees');
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Failed to upload documents');
+      console.error('Error uploading documents:', err);
+      setError(err.response?.data?.error || err.message || 'Failed to upload documents. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -219,57 +233,77 @@ export default function AddNominee() {
         {step === 2 && (
           <form onSubmit={handleStep2Submit} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Nominee ID Document
+              <label htmlFor="nomineeIdDoc" className="block text-sm font-medium text-gray-700 mb-2">
+                Nominee ID Document (Optional)
               </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
-                <div className="space-y-1 text-center">
+              <label
+                htmlFor="nomineeIdDoc"
+                className="mt-1 flex flex-col justify-center items-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-brand-400 transition-colors cursor-pointer"
+              >
+                <div className="space-y-1 text-center w-full">
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                  <div className="flex text-sm text-gray-600">
-                    <label className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
-                      <span>Upload a file</span>
-                      <input
-                        type="file"
-                        className="sr-only"
-                        accept="image/*,.pdf"
-                        onChange={(e) => setDocuments({ ...documents, nomineeId: e.target.files?.[0] || null })}
-                      />
-                    </label>
-                    <p className="pl-1">or drag and drop</p>
+                  <div className="flex text-sm text-gray-600 justify-center items-center">
+                    <span className="font-medium text-brand-600 hover:text-brand-500">Click to upload a file</span>
+                    <span className="pl-1">or drag and drop</span>
                   </div>
                   <p className="text-xs text-gray-500">PNG, JPG, PDF up to 10MB</p>
                   {documents.nomineeId && (
-                    <p className="text-sm text-green-600 mt-2">{documents.nomineeId.name}</p>
+                    <div className="mt-2">
+                      <p className="text-sm text-green-600 font-medium">{documents.nomineeId.name}</p>
+                      <p className="text-xs text-gray-500">{(documents.nomineeId.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
                   )}
                 </div>
-              </div>
+                <input
+                  id="nomineeIdDoc"
+                  type="file"
+                  className="hidden"
+                  accept="image/*,.pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    if (file) {
+                      setDocuments({ ...documents, nomineeId: file });
+                    }
+                  }}
+                />
+              </label>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Address Proof Document
+              <label htmlFor="addressProofDoc" className="block text-sm font-medium text-gray-700 mb-2">
+                Address Proof Document (Optional)
               </label>
-              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg">
-                <div className="space-y-1 text-center">
+              <label
+                htmlFor="addressProofDoc"
+                className="mt-1 flex flex-col justify-center items-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-brand-400 transition-colors cursor-pointer"
+              >
+                <div className="space-y-1 text-center w-full">
                   <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                  <div className="flex text-sm text-gray-600">
-                    <label className="relative cursor-pointer bg-white rounded-md font-medium text-primary-600 hover:text-primary-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-primary-500">
-                      <span>Upload a file</span>
-                      <input
-                        type="file"
-                        className="sr-only"
-                        accept="image/*,.pdf"
-                        onChange={(e) => setDocuments({ ...documents, addressProof: e.target.files?.[0] || null })}
-                      />
-                    </label>
-                    <p className="pl-1">or drag and drop</p>
+                  <div className="flex text-sm text-gray-600 justify-center items-center">
+                    <span className="font-medium text-brand-600 hover:text-brand-500">Click to upload a file</span>
+                    <span className="pl-1">or drag and drop</span>
                   </div>
                   <p className="text-xs text-gray-500">PNG, JPG, PDF up to 10MB</p>
                   {documents.addressProof && (
-                    <p className="text-sm text-green-600 mt-2">{documents.addressProof.name}</p>
+                    <div className="mt-2">
+                      <p className="text-sm text-green-600 font-medium">{documents.addressProof.name}</p>
+                      <p className="text-xs text-gray-500">{(documents.addressProof.size / 1024 / 1024).toFixed(2)} MB</p>
+                    </div>
                   )}
                 </div>
-              </div>
+                <input
+                  id="addressProofDoc"
+                  type="file"
+                  className="hidden"
+                  accept="image/*,.pdf"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0] || null;
+                    if (file) {
+                      setDocuments({ ...documents, addressProof: file });
+                    }
+                  }}
+                />
+              </label>
             </div>
 
             <div className="flex space-x-4">

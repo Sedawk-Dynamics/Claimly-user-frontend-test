@@ -23,8 +23,66 @@ export const nomineeService = {
     return response.data.data;
   },
 
-  async updateNominee(id: string, data: Partial<Nominee>): Promise<Nominee> {
-    const response = await api.put<{ success: boolean; data: Nominee }>(`/nominees/${id}`, data);
+  async updateNominee(
+    id: string,
+    data: {
+      name?: string;
+      relationship?: 'SPOUSE' | 'CHILD' | 'PARENT' | 'SIBLING' | 'FRIEND' | 'OTHER';
+      mobileNumber?: string;
+      email?: string;
+      address?: string;
+      documentsToAdd?: Array<{
+        file: File;
+        documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'DEATH_CERTIFICATE' | 'OTHER';
+        documentName: string;
+      }>;
+      documentsToUpdate?: Array<{
+        documentId: string;
+        file: File;
+        documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'DEATH_CERTIFICATE' | 'OTHER';
+        documentName: string;
+      }>;
+      documentsToDelete?: string[];
+    }
+  ): Promise<Nominee> {
+    const formData = new FormData();
+
+    // Add basic fields
+    if (data.name) formData.append('name', data.name);
+    if (data.relationship) formData.append('relationship', data.relationship);
+    if (data.mobileNumber) formData.append('mobileNumber', data.mobileNumber);
+    if (data.email !== undefined) formData.append('email', data.email || '');
+    if (data.address !== undefined) formData.append('address', data.address || '');
+
+    // Add new documents
+    if (data.documentsToAdd && data.documentsToAdd.length > 0) {
+      data.documentsToAdd.forEach((doc, index) => {
+        formData.append(`document${index}`, doc.file);
+        formData.append(`documentType${index}`, doc.documentType);
+        formData.append(`documentName${index}`, doc.documentName);
+      });
+    }
+
+    // Add document updates
+    if (data.documentsToUpdate && data.documentsToUpdate.length > 0) {
+      data.documentsToUpdate.forEach((doc, index) => {
+        formData.append(`updateDocument${index}`, doc.file);
+        formData.append(`updateDocumentId${index}`, doc.documentId);
+        formData.append(`updateDocumentType${index}`, doc.documentType);
+        formData.append(`updateDocumentName${index}`, doc.documentName);
+      });
+    }
+
+    // Add documents to delete
+    if (data.documentsToDelete && data.documentsToDelete.length > 0) {
+      formData.append('documentsToDelete', JSON.stringify(data.documentsToDelete));
+    }
+
+    const response = await api.put<{ success: boolean; data: Nominee }>(`/nominees/${id}`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
     return response.data.data;
   },
 
