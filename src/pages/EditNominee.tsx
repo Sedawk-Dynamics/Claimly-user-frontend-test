@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { nomineeService } from '../services/nominee.service';
 import { NomineeDocument } from '../types';
-import { ArrowLeft, Save, Upload, Trash2, FileText, X, CheckCircle, Clock } from 'lucide-react';
+import { ArrowLeft, Save, Upload, FileText, X, CheckCircle, Clock } from 'lucide-react';
 import { useRequireActiveSubscription } from '../hooks/useRequireActiveSubscription';
 
 type Relationship = 'SPOUSE' | 'CHILD' | 'PARENT' | 'SIBLING' | 'FRIEND' | 'OTHER';
@@ -356,9 +356,13 @@ export default function EditNominee() {
                         <FileText className="w-4 h-4 text-gray-500" />
                         <span className="font-medium text-gray-900">{doc.documentName}</span>
                         {doc.isVerified ? (
-                          <CheckCircle className="w-4 h-4 text-green-500" title="Verified" />
+                          <span title="Verified">
+                            <CheckCircle className="w-4 h-4 text-green-500" />
+                          </span>
                         ) : (
-                          <Clock className="w-4 h-4 text-yellow-500" title="Pending Verification" />
+                          <span title="Pending Verification">
+                            <Clock className="w-4 h-4 text-yellow-500" />
+                          </span>
                         )}
                       </div>
                       <p className="text-sm text-gray-600 mb-2">
