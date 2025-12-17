@@ -9,6 +9,7 @@ import {
   Menu,
   X,
   LogOut,
+  Bell,
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { userService } from '../services/user.service';
@@ -22,6 +23,7 @@ const navigation = [
   { name: 'Nominees', href: '/nominees', icon: Users },
   { name: 'My Subscription', href: '/subscription', icon: CreditCard },
   { name: 'My Policies', href: '/policies', icon: FileText },
+  { name: 'Notifications', href: '/notifications', icon: Bell },
 ];
 
 export default function Layout() {

@@ -30,6 +30,19 @@ export const userService = {
     );
     return response.data.data;
   },
+
+  async getNotifications(): Promise<any[]> {
+    const response = await api.get<{ success: boolean; data: any[] }>('/notifications');
+    return response.data.data;
+  },
+
+  async markNotificationRead(id: string): Promise<void> {
+    await api.patch(`/notifications/${id}/read`);
+  },
+
+  async deleteNotification(id: string): Promise<void> {
+    await api.delete(`/notifications/${id}`);
+  },
 };
 
 export const documentService = {

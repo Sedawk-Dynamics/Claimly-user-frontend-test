@@ -17,6 +17,7 @@ import Policies from './pages/Policies';
 import AddPolicy from './pages/AddPolicy';
 import EditPolicy from './pages/EditPolicy';
 import KYC from './pages/KYC';
+import Notifications from './pages/Notifications';
 
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   return authService.isAuthenticated() ? <>{children}</> : <Navigate to="/login" replace />;
@@ -55,6 +56,7 @@ function App() {
               <Route path="policies/add" element={<AddPolicy />} />
               <Route path="policies/:id/edit" element={<EditPolicy />} />
               <Route path="kyc" element={<KYC />} />
+              <Route path="notifications" element={<Notifications />} />
             </Route>
           </Routes>
         </BrowserRouter>
