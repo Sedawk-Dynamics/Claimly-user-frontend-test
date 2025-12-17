@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { subscriptionService } from '../services/subscription.service';
-import { CreditCard, Lock, ArrowLeft } from 'lucide-react';
+import { walletService } from '../services/wallet.service';
+import { CreditCard, Lock, ArrowLeft, Wallet } from 'lucide-react';
 
 export default function PaymentScreen() {
   const navigate = useNavigate();
@@ -16,6 +17,31 @@ export default function PaymentScreen() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [useWallet, setUseWallet] = useState(false);
+  const [walletAmount, setWalletAmount] = useState(0);
+  const [loadingWallet, setLoadingWallet] = useState(false);
+
+  useEffect(() => {
+    loadWalletBalance();
+  }, []);
+
+  const loadWalletBalance = async () => {
+    try {
+      setLoadingWallet(true);
+      const balance = await walletService.getBalance();
+      setWalletBalance(balance.balance);
+      // Auto-set wallet amount to available balance if user wants to use wallet
+      if (balance.balance > 0) {
+        const subscriptionAmount = parseFloat(amount);
+        setWalletAmount(Math.min(balance.balance, subscriptionAmount));
+      }
+    } catch (err: any) {
+      console.error('Failed to load wallet balance', err);
+    } finally {
+      setLoadingWallet(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -38,6 +64,19 @@ export default function PaymentScreen() {
     setLoading(true);
 
     try {
+      const subscriptionAmount = parseFloat(amount);
+      const walletAmountToUse = useWallet ? walletAmount : 0;
+
+      if (useWallet && walletAmountToUse > walletBalance) {
+        setError('Insufficient wallet balance');
+        return;
+      }
+
+      if (useWallet && walletAmountToUse > subscriptionAmount) {
+        setError('Wallet amount cannot exceed subscription amount');
+        return;
+      }
+
       // In a real app, this would integrate with a payment gateway
       // For now, we'll simulate a payment
       const paymentId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -49,6 +88,7 @@ export default function PaymentScreen() {
         paymentId,
         paymentStatus: 'SUCCESS',
         transactionDate: new Date().toISOString(),
+        walletAmountUsed: walletAmountToUse > 0 ? walletAmountToUse.toString() : undefined,
       });
 
       // Clear subscription status cache to force refresh
@@ -77,15 +117,94 @@ export default function PaymentScreen() {
       <div className="bg-white rounded-lg shadow-lg p-8">
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">Payment</h1>
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-gray-50 rounded-lg p-4 space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Plan:</span>
-              <span className="font-semibold text-gray-900">{planName}</span>
+              <span className="text-gray-600 dark:text-gray-300">Plan:</span>
+              <span className="font-semibold text-gray-900 dark:text-white">{planName}</span>
             </div>
-            <div className="flex justify-between items-center mt-2">
-              <span className="text-gray-600">Amount:</span>
-              <span className="font-bold text-xl text-gray-900">₹{amount}</span>
+            <div className="flex justify-between items-center">
+              <span className="text-gray-600 dark:text-gray-300">Subscription Amount:</span>
+              <span className="font-bold text-xl text-gray-900 dark:text-white">₹{amount}</span>
             </div>
+            {walletBalance > 0 && (
+              <div className="pt-3 border-t border-gray-200">
+                <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 mb-3">
+                  <div className="flex items-start space-x-2">
+                    <Wallet className="w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0" />
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-green-800 dark:text-green-200">
+                        You have ₹{walletBalance.toFixed(2)} in your wallet!
+                      </p>
+                      <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+                        Use your wallet balance to reduce the payment amount below.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      id="useWallet"
+                      checked={useWallet}
+                      onChange={(e) => {
+                        setUseWallet(e.target.checked);
+                        if (e.target.checked) {
+                          const subscriptionAmount = parseFloat(amount);
+                          setWalletAmount(Math.min(walletBalance, subscriptionAmount));
+                        } else {
+                          setWalletAmount(0);
+                        }
+                      }}
+                      className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500"
+                    />
+                    <label htmlFor="useWallet" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center cursor-pointer">
+                      <Wallet className="w-4 h-4 mr-1 text-brand-600 dark:text-brand-400" />
+                      Use Wallet Balance (₹{walletBalance.toFixed(2)} available)
+                    </label>
+                  </div>
+                </div>
+                {useWallet && (
+                  <div className="ml-6 space-y-3 mt-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Amount to use from wallet
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max={Math.min(walletBalance, parseFloat(amount))}
+                        step="0.01"
+                        value={walletAmount}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || 0;
+                          const subscriptionAmount = parseFloat(amount);
+                          setWalletAmount(Math.min(Math.max(0, value), Math.min(walletBalance, subscriptionAmount)));
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
+                      />
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                        Maximum: ₹{Math.min(walletBalance, parseFloat(amount)).toFixed(2)}
+                      </p>
+                    </div>
+                    <div className="space-y-2 pt-2 border-t border-blue-200 dark:border-blue-700">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-300">Subscription Amount:</span>
+                        <span className="font-semibold text-gray-900 dark:text-white">₹{amount}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-gray-600 dark:text-gray-300">Amount from wallet:</span>
+                        <span className="font-semibold text-green-600 dark:text-green-400">-₹{walletAmount.toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between text-base font-bold pt-2 border-t border-blue-200 dark:border-blue-700">
+                        <span className="text-gray-900 dark:text-white">Final Amount to Pay:</span>
+                        <span className="text-brand-700 dark:text-brand-400 text-lg">₹{(parseFloat(amount) - walletAmount).toFixed(2)}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
@@ -170,15 +289,15 @@ export default function PaymentScreen() {
 
           <button
             type="submit"
-            disabled={loading}
-            className="w-full bg-primary-600 text-white py-3 rounded-lg font-medium hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center"
+            disabled={loading || (useWallet && walletAmount > 0 && parseFloat(amount) - walletAmount <= 0 && (!formData.cardNumber || !formData.cardHolderName))}
+            className="w-full bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white py-3 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center shadow-md hover:shadow-lg"
           >
             {loading ? (
               'Processing...'
             ) : (
               <>
                 <Lock className="w-5 h-5 mr-2" />
-                Pay ₹{amount}
+                Pay ₹{useWallet && walletAmount > 0 ? (parseFloat(amount) - walletAmount).toFixed(2) : amount}
               </>
             )}
           </button>

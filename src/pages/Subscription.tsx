@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { userService } from '../services/user.service';
 import { SubscriptionStatus, Subscription as SubscriptionType } from '../types';
-import { CreditCard, Check, X, Clock } from 'lucide-react';
-import { format } from 'date-fns';
+import { CreditCard, Check, X, Clock, Calendar, Plus } from 'lucide-react';
+import { format, differenceInDays, addDays } from 'date-fns';
 import { useRequireActiveSubscription } from '../hooks/useRequireActiveSubscription';
 
 export default function Subscription() {
+  const navigate = useNavigate();
   const [currentSubscription, setCurrentSubscription] = useState<SubscriptionStatus | null>(null);
   const [subscriptionHistory, setSubscriptionHistory] = useState<SubscriptionType[]>([]);
   const [loading, setLoading] = useState(true);
@@ -133,6 +135,51 @@ export default function Subscription() {
                 <p className="text-lg font-bold text-gray-900 dark:text-white">
                   {format(new Date(currentSubscription.subscription.transactionDate), 'MMM dd, yyyy')}
                 </p>
+              </div>
+            </div>
+
+            {/* Expiry Date and Days Remaining */}
+            {currentSubscription.subscription.expiresAt && (
+              <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl border border-green-200/30 dark:border-green-800/30">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-3">
+                    <Calendar className="w-5 h-5 text-green-600 dark:text-green-400" />
+                    <div>
+                      <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">Expires On</p>
+                      <p className="text-lg font-bold text-gray-900 dark:text-white">
+                        {format(new Date(currentSubscription.subscription.expiresAt), 'MMM dd, yyyy')}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">Days Remaining</p>
+                    <p className="text-xl font-bold text-green-600 dark:text-green-400">
+                      {Math.max(0, differenceInDays(new Date(currentSubscription.subscription.expiresAt), new Date()))}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Extend Subscription Section */}
+            <div className="mt-6 p-4 bg-gradient-to-r from-brand-50 to-cyan-50 dark:from-brand-900/20 dark:to-cyan-900/20 rounded-xl border-2 border-brand-200 dark:border-brand-700">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex-1">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2 flex items-center">
+                    <Plus className="w-5 h-5 mr-2 text-brand-600 dark:text-brand-400" />
+                    Extend Your Subscription
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">
+                    Purchase a new subscription plan to extend your current subscription. Your new subscription will be added to your remaining days, giving you a total of {currentSubscription.subscription.expiresAt ? Math.max(0, differenceInDays(new Date(currentSubscription.subscription.expiresAt), new Date())) : 0} + 30 days of access.
+                  </p>
+                </div>
+                <button
+                  onClick={() => navigate('/subscription-offering')}
+                  className="px-6 py-3 bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white rounded-lg font-medium transition-all duration-200 flex items-center space-x-2 shadow-md hover:shadow-lg whitespace-nowrap"
+                >
+                  <Plus className="w-5 h-5" />
+                  <span>Extend Subscription</span>
+                </button>
               </div>
             </div>
           </div>

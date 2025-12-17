@@ -6,6 +6,9 @@ export interface User {
   mobileNumber: string;
   deviceId?: string;
   subscriptionStatus: 'ACTIVE' | 'INACTIVE' | 'EXPIRED';
+  referralCode?: string | null;
+  referralCodeExpiresAt?: string | null;
+  walletBalance?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -22,6 +25,7 @@ export interface Subscription {
   paymentId: string;
   paymentStatus: 'SUCCESS' | 'PENDING' | 'FAILED';
   transactionDate: string;
+  expiresAt?: string | null;
 }
 
 export interface SubscriptionStatus {

@@ -15,6 +15,7 @@ export default function Login() {
   const [error, setError] = useState('');
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [referralCode, setReferralCode] = useState('');
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<any>(null);
   const [idToken, setIdToken] = useState<string>('');
   const navigate = useNavigate();
@@ -116,7 +117,14 @@ export default function Login() {
         }
       }
 
-      const response = await authService.verifyOTP(firebaseIdToken, phoneNumber, name, email);
+      const response = await authService.verifyOTP(
+        firebaseIdToken, 
+        phoneNumber, 
+        name, 
+        email, 
+        undefined, 
+        referralCode.trim() || undefined
+      );
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
       navigate('/');
@@ -299,6 +307,26 @@ export default function Login() {
                   className="w-full px-4 py-3.5 bg-white/90 border-2 border-cyan-400/30 rounded-xl text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all duration-300 backdrop-blur-sm hover:border-cyan-400/50"
                   placeholder="john.doe@example.com"
                 />
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="referralCode" className="block text-sm font-semibold text-gray-800 mb-2">
+                  Referral Code <span className="text-gray-500 font-normal">(Optional)</span>
+                </label>
+                <input
+                  id="referralCode"
+                  type="text"
+                  value={referralCode}
+                  onChange={(e) => {
+                    let value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                    // Limit to 10 characters (CLM + 7)
+                    setReferralCode(value.slice(0, 10));
+                  }}
+                  maxLength={10}
+                  className="w-full px-4 py-3.5 bg-white/90 border-2 border-cyan-400/30 rounded-xl text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all duration-300 backdrop-blur-sm hover:border-cyan-400/50 uppercase"
+                  placeholder="CLM1234567"
+                />
+                <p className="text-xs text-gray-500">Enter a referral code if you have one</p>
               </div>
 
               <button

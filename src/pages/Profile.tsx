@@ -1,13 +1,17 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { userService, documentService } from '../services/user.service';
 import { policyService, policyDocumentService } from '../services/policy.service';
 import { nomineeService, nomineeDocumentService } from '../services/nominee.service';
 import { User, UserDocument, Policy, Nominee } from '../types';
-import { User as UserIcon, Mail, Phone, Calendar, Save, FileText, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw } from 'lucide-react';
+import { User as UserIcon, Mail, Phone, Calendar, Save, FileText, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw, Gift, Copy, Check, RefreshCw, AlertCircle, Wallet, TrendingUp } from 'lucide-react';
 import KycSection from '../components/KycSection';
 import { useRequireActiveSubscription } from '../hooks/useRequireActiveSubscription';
+import { walletService } from '../services/wallet.service';
+import { WalletTransaction } from '../types/wallet';
 
 export default function Profile() {
+  const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -25,6 +29,12 @@ export default function Profile() {
   const [loadingDocuments, setLoadingDocuments] = useState(false);
   const [updatingDocument, setUpdatingDocument] = useState<string | null>(null);
   const [updateFiles, setUpdateFiles] = useState<{ [key: string]: File | null }>({});
+  const [generatingReferralCode, setGeneratingReferralCode] = useState(false);
+  const [regeneratingReferralCode, setRegeneratingReferralCode] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
+  const [loadingWallet, setLoadingWallet] = useState(false);
+  const [showWalletHistory, setShowWalletHistory] = useState(false);
   const { checking } = useRequireActiveSubscription();
 
   useEffect(() => {
@@ -34,6 +44,25 @@ export default function Profile() {
     loadProfile();
     loadAllDocuments();
   }, [checking]);
+
+  useEffect(() => {
+    if (checking || !showWalletHistory) {
+      return;
+    }
+    loadWalletTransactions();
+  }, [checking, showWalletHistory]);
+
+  const loadWalletTransactions = async () => {
+    try {
+      setLoadingWallet(true);
+      const transactions = await walletService.getTransactions();
+      setWalletTransactions(transactions);
+    } catch (err: any) {
+      console.error('Failed to load wallet transactions', err);
+    } finally {
+      setLoadingWallet(false);
+    }
+  };
 
   const loadAllDocuments = async () => {
     try {
@@ -182,20 +211,20 @@ export default function Profile() {
   if (checking || loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 dark:border-brand-400"></div>
       </div>
     );
   }
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-lg p-8">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">My Profile</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">My Profile</h1>
           {!editing && (
             <button
               onClick={() => setEditing(true)}
-              className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition"
+              className="px-4 py-2 bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white rounded-lg transition shadow-md hover:shadow-lg"
             >
               Edit Profile
             </button>
@@ -216,19 +245,19 @@ export default function Profile() {
 
         <div className="space-y-6">
           <div className="flex items-center space-x-4">
-            <div className="w-20 h-20 bg-primary-100 rounded-full flex items-center justify-center">
-              <UserIcon className="w-10 h-10 text-primary-600" />
+            <div className="w-20 h-20 bg-brand-100 dark:bg-brand-900/30 rounded-full flex items-center justify-center">
+              <UserIcon className="w-10 h-10 text-brand-600 dark:text-brand-400" />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-900">{user?.name}</h2>
-              <p className="text-gray-600">{user?.mobileNumber}</p>
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{user?.name}</h2>
+              <p className="text-gray-600 dark:text-gray-300">{user?.mobileNumber}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                <UserIcon className="w-4 h-4 mr-2" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                <UserIcon className="w-4 h-4 mr-2 text-brand-600 dark:text-brand-400" />
                 Full Name
               </label>
               {editing ? (
@@ -236,25 +265,25 @@ export default function Profile() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
                 />
               ) : (
-                <p className="text-gray-900">{user?.name}</p>
+                <p className="text-gray-900 dark:text-white font-medium">{user?.name}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                <Phone className="w-4 h-4 mr-2" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                <Phone className="w-4 h-4 mr-2 text-brand-600 dark:text-brand-400" />
                 Mobile Number
               </label>
-              <p className="text-gray-900">{user?.mobileNumber}</p>
-              <p className="text-sm text-gray-500 mt-1">Mobile number cannot be changed</p>
+              <p className="text-gray-900 dark:text-white font-medium">{user?.mobileNumber}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Mobile number cannot be changed</p>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                <Mail className="w-4 h-4 mr-2" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                <Mail className="w-4 h-4 mr-2 text-brand-600 dark:text-brand-400" />
                 Email
               </label>
               {editing ? (
@@ -262,16 +291,16 @@ export default function Profile() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
                 />
               ) : (
-                <p className="text-gray-900">{user?.email || 'Not provided'}</p>
+                <p className="text-gray-900 dark:text-white font-medium">{user?.email || 'Not provided'}</p>
               )}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
-                <Calendar className="w-4 h-4 mr-2" />
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2 flex items-center">
+                <Calendar className="w-4 h-4 mr-2 text-brand-600 dark:text-brand-400" />
                 Date of Birth
               </label>
               {editing ? (
@@ -279,10 +308,10 @@ export default function Profile() {
                   type="date"
                   value={formData.dob}
                   onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none"
+                  className="w-full px-4 py-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
                 />
               ) : (
-                <p className="text-gray-900">
+                <p className="text-gray-900 dark:text-white font-medium">
                   {user?.dob ? new Date(user.dob).toLocaleDateString() : 'Not provided'}
                 </p>
               )}
@@ -294,7 +323,7 @@ export default function Profile() {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex items-center px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50"
+                className="flex items-center px-6 py-2 bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
               >
                 <Save className="w-4 h-4 mr-2" />
                 {saving ? 'Saving...' : 'Save Changes'}
@@ -310,7 +339,7 @@ export default function Profile() {
                   setError('');
                   setSuccess('');
                 }}
-                className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                className="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition"
               >
                 Cancel
               </button>
@@ -318,6 +347,247 @@ export default function Profile() {
           )}
         </div>
       </div>
+
+      {/* Referral Code Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mt-8">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+          <Gift className="w-5 h-5 mr-2 text-brand-600 dark:text-brand-400" />
+          My Referral Code
+        </h2>
+        
+        <div className="bg-gradient-to-r from-brand-50 to-cyan-50 dark:from-brand-900/20 dark:to-cyan-900/20 rounded-lg p-6 border-2 border-brand-200 dark:border-brand-700">
+          {user?.referralCode ? (() => {
+            const isExpired = user.referralCodeExpiresAt 
+              ? new Date(user.referralCodeExpiresAt) <= new Date()
+              : false;
+            const expiresAt = user.referralCodeExpiresAt 
+              ? new Date(user.referralCodeExpiresAt)
+              : null;
+            const daysRemaining = expiresAt 
+              ? Math.ceil((expiresAt.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
+              : null;
+
+            return (
+              <div className="space-y-4">
+                {isExpired && (
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center space-x-2">
+                    <AlertCircle className="w-5 h-5 text-orange-600" />
+                    <p className="text-sm text-orange-800 font-medium">
+                      This referral code has expired. Please regenerate a new code.
+                    </p>
+                  </div>
+                )}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Your Referral Code
+                  </label>
+                  <div className="flex items-center space-x-3 flex-wrap gap-3">
+                    <div className={`flex-1 min-w-[200px] bg-white dark:bg-gray-700 rounded-lg px-4 py-3 border-2 ${isExpired ? 'border-orange-300 dark:border-orange-600 bg-orange-50 dark:bg-orange-900/20' : 'border-brand-300 dark:border-brand-600'}`}>
+                      <code className={`text-2xl font-bold tracking-wider block ${isExpired ? 'text-orange-700 dark:text-orange-400 line-through' : 'text-brand-700 dark:text-brand-400'}`}>
+                        {user.referralCode}
+                      </code>
+                    </div>
+                    <button
+                      onClick={async () => {
+                        try {
+                          await navigator.clipboard.writeText(user.referralCode!);
+                          setCopied(true);
+                          setTimeout(() => setCopied(false), 2000);
+                        } catch (err) {
+                          console.error('Failed to copy', err);
+                        }
+                      }}
+                      className="px-4 py-3 bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white rounded-lg transition-all duration-200 flex items-center space-x-2 font-medium shadow-md hover:shadow-lg whitespace-nowrap"
+                      title="Copy referral code"
+                    >
+                      {copied ? (
+                        <>
+                          <Check className="w-5 h-5" />
+                          <span>Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-5 h-5" />
+                          <span>Copy</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                {expiresAt && (
+                  <div className="flex items-center space-x-2 text-sm">
+                    <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                    {isExpired ? (
+                      <span className="text-orange-600 dark:text-orange-400 font-medium">Expired on {expiresAt.toLocaleDateString()}</span>
+                    ) : (
+                      <span className="text-gray-600 dark:text-gray-300">
+                        Expires on {expiresAt.toLocaleDateString()} ({daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining)
+                      </span>
+                    )}
+                  </div>
+                )}
+                <div className="flex items-center space-x-3 flex-wrap gap-3">
+                  <button
+                    onClick={async () => {
+                      setRegeneratingReferralCode(true);
+                      setError('');
+                      try {
+                        const result = await userService.generateReferralCode(true);
+                        await loadProfile(); // Reload profile to get the new code
+                        setSuccess('Referral code regenerated successfully!');
+                      } catch (err: any) {
+                        setError(err.response?.data?.error || 'Failed to regenerate referral code');
+                      } finally {
+                        setRegeneratingReferralCode(false);
+                      }
+                    }}
+                    disabled={regeneratingReferralCode}
+                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 font-medium shadow-md hover:shadow-lg whitespace-nowrap"
+                  >
+                    {regeneratingReferralCode ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                        <span>Regenerating...</span>
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="w-4 h-4" />
+                        <span>Regenerate Code</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-300">
+                  Share this code with your friends! When they sign up using your referral code, and they take subscription you will get 10% in your wallet.
+                </p>
+              </div>
+            );
+          })() : (
+            <div className="space-y-4">
+              <p className="text-gray-700">
+                You don't have a referral code yet. Generate one to start referring friends!
+              </p>
+              <button
+                onClick={async () => {
+                  setGeneratingReferralCode(true);
+                  setError('');
+                  try {
+                    const result = await userService.generateReferralCode(false);
+                    await loadProfile(); // Reload profile to get the new code
+                    setSuccess('Referral code generated successfully!');
+                  } catch (err: any) {
+                    setError(err.response?.data?.error || 'Failed to generate referral code');
+                  } finally {
+                    setGeneratingReferralCode(false);
+                  }
+                }}
+                disabled={generatingReferralCode}
+                className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+              >
+                {generatingReferralCode ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent"></div>
+                    <span>Generating...</span>
+                  </>
+                ) : (
+                  <>
+                    <Gift className="w-5 h-5" />
+                    <span>Generate Referral Code</span>
+                  </>
+                )}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Wallet Section */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mt-8">
+        <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+          <Wallet className="w-5 h-5 mr-2 text-brand-600 dark:text-brand-400" />
+          My Wallet
+        </h2>
+        
+        <div className="bg-gradient-to-r from-brand-50 to-cyan-50 dark:from-brand-900/20 dark:to-cyan-900/20 rounded-lg p-6 border-2 border-brand-200 dark:border-brand-700 mb-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-300 mb-1">Wallet Balance</p>
+              <p className="text-3xl font-bold text-brand-700 dark:text-brand-400">₹{user?.walletBalance?.toFixed(2) || '0.00'}</p>
+            </div>
+            <div className="p-4 bg-brand-600 dark:bg-brand-500 rounded-full">
+              <Wallet className="w-8 h-8 text-white" />
+            </div>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-300 mt-4">
+            Earn rewards when your referrals subscribe! Use your wallet balance to pay for your own subscription.
+          </p>
+          {user?.walletBalance && user.walletBalance > 0 && (
+            <div className="mt-4 pt-4 border-t border-brand-200 dark:border-brand-700">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mb-3">
+                <strong>How to use your wallet:</strong> When purchasing a subscription, you can choose to use your wallet balance to reduce the payment amount.
+              </p>
+              <button
+                onClick={() => navigate('/subscription-offering')}
+                className="inline-flex items-center px-4 py-2 bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white rounded-lg transition-all duration-200 font-medium text-sm shadow-md hover:shadow-lg"
+              >
+                <Gift className="w-4 h-4 mr-2" />
+                Use Wallet for Subscription
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+              <TrendingUp className="w-5 h-5 mr-2 text-brand-600" />
+              Transaction History
+            </h3>
+            <button
+              onClick={() => setShowWalletHistory(!showWalletHistory)}
+              className="text-sm font-semibold text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300 transition-colors"
+            >
+              {showWalletHistory ? 'Hide' : 'Show'} History
+            </button>
+          </div>
+          {showWalletHistory && (
+            <>
+              {loadingWallet ? (
+                <div className="flex items-center justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+                </div>
+              ) : walletTransactions.length === 0 ? (
+                <p className="text-gray-600 dark:text-gray-300 text-center py-8">No wallet transactions yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {walletTransactions.map((tx) => (
+                    <div key={tx.id} className="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <p className="font-medium text-gray-900 dark:text-white">{tx.description}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            {new Date(tx.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        </div>
+                        <div className={`text-lg font-bold ${tx.transactionType === 'REFERRAL_REWARD' || tx.transactionType === 'REFUND' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                          {tx.transactionType === 'REFERRAL_REWARD' || tx.transactionType === 'REFUND' ? '+' : '-'}₹{tx.amount.toFixed(2)}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </div>
+
       <KycSection />
       
       {/* All Documents Section */}

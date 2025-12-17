@@ -8,6 +8,7 @@ export const subscriptionService = {
     paymentId: string;
     paymentStatus?: 'SUCCESS' | 'PENDING' | 'FAILED';
     transactionDate: string;
+    walletAmountUsed?: string;
   }): Promise<Subscription> {
     const response = await api.post<{ success: boolean; data: Subscription }>('/subscription', data);
     return response.data.data;

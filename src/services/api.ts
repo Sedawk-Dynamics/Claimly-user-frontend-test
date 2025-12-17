@@ -1,13 +1,16 @@
-import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios';
-
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+import axios, { AxiosInstance, InternalAxiosRequestConfig, AxiosError } from 'axios';
+import { env } from '../config/env';
 
 class ApiService {
   private api: AxiosInstance;
+  private retryCount = 0;
+  private readonly maxRetries = 3;
+  private readonly retryDelay = 1000; // 1 second
 
   constructor() {
     this.api = axios.create({
-      baseURL: API_BASE_URL,
+      baseURL: env.VITE_API_URL,
+      timeout: 30000, // 30 seconds timeout
       headers: {
         'Content-Type': 'application/json',
       },
@@ -27,16 +30,60 @@ class ApiService {
       }
     );
 
-    // Response interceptor to handle errors
+    // Response interceptor to handle errors with retry logic
     this.api.interceptors.response.use(
-      (response) => response,
-      (error) => {
+      (response) => {
+        // Reset retry count on successful response
+        this.retryCount = 0;
+        return response;
+      },
+      async (error: AxiosError) => {
+        const originalRequest = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+
+        // Handle 401 Unauthorized
         if (error.response?.status === 401) {
-          // Unauthorized - clear token and redirect to login
+          // Clear auth data and redirect to login
           localStorage.removeItem('token');
           localStorage.removeItem('user');
-          window.location.href = '/login';
+          
+          // Only redirect if not already on login page
+          if (window.location.pathname !== '/login') {
+            window.location.href = '/login';
+          }
+          return Promise.reject(error);
         }
+
+        // Handle network errors and 5xx errors with retry logic
+        if (
+          (!error.response || (error.response.status >= 500 && error.response.status < 600)) &&
+          !originalRequest._retry &&
+          this.retryCount < this.maxRetries
+        ) {
+          originalRequest._retry = true;
+          this.retryCount++;
+
+          // Wait before retrying (exponential backoff)
+          await new Promise((resolve) => setTimeout(resolve, this.retryDelay * this.retryCount));
+
+          // Retry the request
+          return this.api(originalRequest);
+        }
+
+        // Reset retry count after max retries
+        if (this.retryCount >= this.maxRetries) {
+          this.retryCount = 0;
+        }
+
+        // Log error in development
+        if (import.meta.env.DEV) {
+          console.error('API Error:', {
+            url: originalRequest?.url,
+            method: originalRequest?.method,
+            status: error.response?.status,
+            message: error.message,
+          });
+        }
+
         return Promise.reject(error);
       }
     );

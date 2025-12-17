@@ -1,32 +1,25 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, PhoneAuthProvider, signInWithCredential } from 'firebase/auth';
 import { getAnalytics } from 'firebase/analytics';
+import { env } from './env';
 
-// Firebase configuration
+// Firebase configuration using validated environment variables
 const getFirebaseConfig = () => {
-  // Prefer environment variables, fallback to hardcoded values
-  const apiKey = 'AIzaSyCDlvhiaQfcjOjj-gomxvcjPmet5Uzn53s';
-  const authDomain = 'claimly-f3c25.firebaseapp.com';
-  const projectId = 'claimly-f3c25';
-  const storageBucket ='claimly-f3c25.firebasestorage.app';
-  const messagingSenderId ='39178158773';
-  const appId ='1:39178158773:web:ac2d34fe6d16278e9b74fc';
-  const measurementId ='G-JK5Y6G0KXQ';
-
   // Validate API key
-  if (!apiKey || apiKey.length < 20) {
-    console.error('Firebase API Key is missing or invalid. Please check your .env file or Firebase configuration.');
-    throw new Error('Firebase API Key is missing or invalid');
+  if (!env.VITE_FIREBASE_API_KEY || env.VITE_FIREBASE_API_KEY.length < 20) {
+    const errorMsg = 'Firebase API Key is missing or invalid. Please check your .env file.';
+    console.error('❌', errorMsg);
+    throw new Error(errorMsg);
   }
 
   return {
-    apiKey,
-    authDomain,
-    projectId,
-    storageBucket,
-    messagingSenderId,
-    appId,
-    measurementId,
+    apiKey: env.VITE_FIREBASE_API_KEY,
+    authDomain: env.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: env.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: env.VITE_FIREBASE_APP_ID,
+    measurementId: env.VITE_FIREBASE_MEASUREMENT_ID,
   };
 };
 
