@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { userService } from '../services/user.service';
 import { SubscriptionStatus, Subscription as SubscriptionType } from '../types';
 import { CreditCard, Check, X, Clock, Calendar, Plus } from 'lucide-react';
-import { format, differenceInDays, addDays } from 'date-fns';
+import { format, differenceInDays } from 'date-fns';
 import { useRequireActiveSubscription } from '../hooks/useRequireActiveSubscription';
 
 export default function Subscription() {

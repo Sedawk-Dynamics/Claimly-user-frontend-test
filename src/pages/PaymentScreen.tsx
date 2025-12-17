@@ -20,7 +20,6 @@ export default function PaymentScreen() {
   const [walletBalance, setWalletBalance] = useState(0);
   const [useWallet, setUseWallet] = useState(false);
   const [walletAmount, setWalletAmount] = useState(0);
-  const [loadingWallet, setLoadingWallet] = useState(false);
 
   useEffect(() => {
     loadWalletBalance();
@@ -28,7 +27,6 @@ export default function PaymentScreen() {
 
   const loadWalletBalance = async () => {
     try {
-      setLoadingWallet(true);
       const balance = await walletService.getBalance();
       setWalletBalance(balance.balance);
       // Auto-set wallet amount to available balance if user wants to use wallet
@@ -38,8 +36,6 @@ export default function PaymentScreen() {
       }
     } catch (err: any) {
       console.error('Failed to load wallet balance', err);
-    } finally {
-      setLoadingWallet(false);
     }
   };
 

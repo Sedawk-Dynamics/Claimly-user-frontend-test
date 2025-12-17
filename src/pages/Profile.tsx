@@ -432,7 +432,7 @@ export default function Profile() {
                       setRegeneratingReferralCode(true);
                       setError('');
                       try {
-                        const result = await userService.generateReferralCode(true);
+                        await userService.generateReferralCode(true);
                         await loadProfile(); // Reload profile to get the new code
                         setSuccess('Referral code regenerated successfully!');
                       } catch (err: any) {
@@ -472,7 +472,7 @@ export default function Profile() {
                   setGeneratingReferralCode(true);
                   setError('');
                   try {
-                    const result = await userService.generateReferralCode(false);
+                    await userService.generateReferralCode(false);
                     await loadProfile(); // Reload profile to get the new code
                     setSuccess('Referral code generated successfully!');
                   } catch (err: any) {
