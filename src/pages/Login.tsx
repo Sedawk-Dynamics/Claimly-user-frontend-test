@@ -5,6 +5,7 @@ import { auth, setupRecaptcha, sendOTP, verifyOTP } from '../config/firebase';
 import { useTheme } from '../contexts/ThemeContext';
 import { Phone, MessageSquare } from 'lucide-react';
 import logo from '../logo/claimly logo png.png';
+import { normalizePhoneNumber } from '../utils/phone';
 
 export default function Login() {
   const [step, setStep] = useState<'phone' | 'otp' | 'signup'>('phone');
@@ -69,7 +70,8 @@ export default function Login() {
       setIdToken(firebaseIdToken);
       // Try to login with existing user
       try {
-        const response = await authService.verifyOTP(firebaseIdToken, phoneNumber);
+        const normalizedPhone = normalizePhoneNumber(phoneNumber);
+        const response = await authService.verifyOTP(firebaseIdToken, normalizedPhone);
         localStorage.setItem('token', response.token);
         localStorage.setItem('user', JSON.stringify(response.user));
         navigate('/');
@@ -117,9 +119,10 @@ export default function Login() {
         }
       }
 
+      const normalizedPhone = normalizePhoneNumber(phoneNumber);
       const response = await authService.verifyOTP(
         firebaseIdToken, 
-        phoneNumber, 
+        normalizedPhone, 
         name, 
         email, 
         undefined, 
