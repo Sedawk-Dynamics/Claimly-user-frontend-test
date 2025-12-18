@@ -1,9 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import { injectServiceWorkerConfig } from './vite-plugin-inject-sw-config'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), injectServiceWorkerConfig()],
   server: {
     port: 5175,
     proxy: {

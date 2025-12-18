@@ -31,27 +31,53 @@ export async function requestNotificationPermission(): Promise<string | null> {
       appId: import.meta.env.VITE_FIREBASE_APP_ID,
     };
     
+    // Send config to service worker and ensure it's received
+    const sendConfigToSW = async (sw: ServiceWorker) => {
+      return new Promise<void>((resolve) => {
+        const channel = new MessageChannel();
+        channel.port1.onmessage = (event) => {
+          if (event.data === 'CONFIG_RECEIVED') {
+            resolve();
+          }
+        };
+        
+        sw.postMessage({
+          type: 'FIREBASE_CONFIG',
+          config: firebaseConfig,
+        }, [channel.port2]);
+        
+        // Timeout after 1 second
+        setTimeout(() => resolve(), 1000);
+      });
+    };
+
     // Try to send to active service worker
     if (registration?.active) {
-      registration.active.postMessage({
-        type: 'FIREBASE_CONFIG',
-        config: firebaseConfig,
-      });
+      await sendConfigToSW(registration.active);
     } else if (registration?.waiting) {
-      registration.waiting.postMessage({
-        type: 'FIREBASE_CONFIG',
-        config: firebaseConfig,
-      });
+      await sendConfigToSW(registration.waiting);
     } else if (registration?.installing) {
-      registration.installing.addEventListener('statechange', function() {
-        if (this.state === 'activated' && registration.active) {
-          registration.active.postMessage({
-            type: 'FIREBASE_CONFIG',
-            config: firebaseConfig,
-          });
-        }
+      await new Promise<void>((resolve) => {
+        registration.installing!.addEventListener('statechange', async function() {
+          if (this.state === 'activated' && registration.active) {
+            await sendConfigToSW(registration.active);
+            resolve();
+          }
+        });
       });
     }
+    
+    // Also listen for service worker updates and send config
+    registration.addEventListener('updatefound', () => {
+      const newWorker = registration.installing;
+      if (newWorker) {
+        newWorker.addEventListener('statechange', async () => {
+          if (newWorker.state === 'activated' && registration.active) {
+            await sendConfigToSW(registration.active);
+          }
+        });
+      }
+    });
 
     // Request permission
     const permission = await Notification.requestPermission();
