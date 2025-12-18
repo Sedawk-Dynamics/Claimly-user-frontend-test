@@ -1,6 +1,13 @@
 import { useEffect, useState, useRef } from 'react';
 import { userService } from '../services/user.service';
-import { Bell, CheckCircle, Trash2, RefreshCw } from 'lucide-react';
+import { Bell, CheckCircle, Trash2, RefreshCw, Smartphone } from 'lucide-react';
+import {
+  requestNotificationPermission,
+  registerFCMToken,
+  setupForegroundMessageHandler,
+  isNotificationSupported,
+  getNotificationPermission,
+} from '../services/push-notification.service';
 
 type Notification = {
   id: string;
@@ -15,6 +22,8 @@ export default function Notifications() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [refreshing, setRefreshing] = useState(false);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushSupported, setPushSupported] = useState(false);
   const pollingIntervalRef = useRef<NodeJS.Timeout | null>(null);
   const isInitialLoadRef = useRef(true);
 
@@ -47,11 +56,62 @@ export default function Notifications() {
     }
   };
 
+  // Initialize push notifications
+  useEffect(() => {
+    const initPushNotifications = async () => {
+      const supported = isNotificationSupported();
+      setPushSupported(supported);
+
+      if (!supported) {
+        return;
+      }
+
+      const permission = getNotificationPermission();
+      setPushEnabled(permission === 'granted');
+
+      // If permission is already granted, register token
+      if (permission === 'granted') {
+        try {
+          const token = await requestNotificationPermission();
+          if (token) {
+            await registerFCMToken(token);
+            setPushEnabled(true);
+          }
+        } catch (error) {
+          console.error('Failed to register push notifications:', error);
+        }
+      }
+
+      // Set up foreground message handler
+      const unsubscribe = setupForegroundMessageHandler((payload) => {
+        // Show browser notification when app is in foreground
+        if (payload.notification) {
+          new Notification(payload.notification.title || 'New Notification', {
+            body: payload.notification.body || payload.data?.message,
+            icon: '/icon-192x192.png',
+            tag: payload.data?.notificationId || 'notification',
+          });
+        }
+        // Refresh notifications list
+        loadNotifications(true);
+      });
+
+      return () => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      };
+    };
+
+    initPushNotifications();
+  }, []);
+
   useEffect(() => {
     // Initial load
     loadNotifications();
 
     // Set up polling - check for new notifications every 30 seconds
+    // Note: Polling is still useful as a fallback, but push notifications are more efficient
     const startPolling = () => {
       pollingIntervalRef.current = setInterval(() => {
         // Only poll if page is visible
@@ -94,6 +154,22 @@ export default function Notifications() {
     };
   }, []);
 
+  const handleEnablePush = async () => {
+    try {
+      const token = await requestNotificationPermission();
+      if (token) {
+        await registerFCMToken(token);
+        setPushEnabled(true);
+        alert('Push notifications enabled! You will receive notifications even when the app is closed.');
+      } else {
+        alert('Failed to enable push notifications. Please check your browser settings.');
+      }
+    } catch (error: any) {
+      console.error('Failed to enable push notifications:', error);
+      alert(error.message || 'Failed to enable push notifications');
+    }
+  };
+
   const handleMarkRead = async (id: string) => {
     try {
       await userService.markNotificationRead(id);
@@ -131,19 +207,31 @@ export default function Notifications() {
           <div>
             <h1 className="text-3xl font-bold text-gradient-brand">Notifications</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-              View important updates from Claimly. Auto-refreshes every 30 seconds.
+              View important updates from Claimly. {pushEnabled ? 'Push notifications enabled.' : 'Enable push notifications to receive updates even when the app is closed.'}
             </p>
           </div>
         </div>
-        <button
-          onClick={() => loadNotifications()}
-          disabled={refreshing || loading}
-          className="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-cyan text-white shadow-glow-cyan hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-          title="Refresh notifications"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
-          Refresh
-        </button>
+        <div className="flex items-center space-x-2">
+          {pushSupported && !pushEnabled && (
+            <button
+              onClick={handleEnablePush}
+              className="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg hover:opacity-90 transition-opacity"
+              title="Enable push notifications"
+            >
+              <Smartphone className="w-4 h-4 mr-2" />
+              Enable Push
+            </button>
+          )}
+          <button
+            onClick={() => loadNotifications()}
+            disabled={refreshing || loading}
+            className="inline-flex items-center px-4 py-2 text-sm font-semibold rounded-lg bg-gradient-cyan text-white shadow-glow-cyan hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Refresh notifications"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${refreshing ? 'animate-spin' : ''}`} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {error && (

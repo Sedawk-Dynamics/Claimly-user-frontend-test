@@ -1,6 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, PhoneAuthProvider, signInWithCredential } from 'firebase/auth';
 import { getAnalytics } from 'firebase/analytics';
+import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
 import { env } from './env';
 
 // Firebase configuration using validated environment variables
@@ -88,4 +89,16 @@ export const verifyOTP = async (verificationId: string, otp: string): Promise<st
   const idToken = await userCredential.user.getIdToken();
   return idToken;
 };
+
+// Initialize Firebase Cloud Messaging (only in browser)
+let messaging: Messaging | null = null;
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+  try {
+    messaging = getMessaging(app);
+  } catch (error) {
+    console.warn('Firebase Messaging initialization failed:', error);
+  }
+}
+
+export { messaging };
 

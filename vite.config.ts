@@ -40,7 +40,9 @@ export default defineConfig({
   },
   // Optimize dependencies
   optimizeDeps: {
-    include: ['react', 'react-dom', 'react-router-dom', 'firebase/app', 'firebase/auth'],
+    include: ['react', 'react-dom', 'react-router-dom', 'firebase/app', 'firebase/auth', 'firebase/messaging'],
   },
+  // Ensure service worker is accessible
+  publicDir: 'public',
 })
 
