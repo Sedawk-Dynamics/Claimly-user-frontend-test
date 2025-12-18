@@ -1,7 +1,7 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, RecaptchaVerifier, signInWithPhoneNumber, PhoneAuthProvider, signInWithCredential } from 'firebase/auth';
 import { getAnalytics } from 'firebase/analytics';
-import { getMessaging, getToken, onMessage, Messaging } from 'firebase/messaging';
+import { getMessaging, Messaging } from 'firebase/messaging';
 import { env } from './env';
 
 // Firebase configuration using validated environment variables
