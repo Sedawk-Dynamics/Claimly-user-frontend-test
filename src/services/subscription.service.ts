@@ -1,6 +1,17 @@
 import api from './api';
 import { Subscription } from '../types';
 
+export interface SubscriptionPlan {
+  id: string;
+  name: string;
+  price: string;
+  features: string[];
+  isPopular: boolean;
+  status: 'ACTIVE' | 'INACTIVE';
+  createdAt: string;
+  updatedAt: string;
+}
+
 export const subscriptionService = {
   async createSubscription(data: {
     planName: string;
@@ -17,6 +28,13 @@ export const subscriptionService = {
   async getReceiptURL(subscriptionId: string): Promise<{ receiptUrl: string; downloadUrl: string }> {
     const response = await api.get<{ success: boolean; data: { receiptUrl: string; downloadUrl: string } }>(
       `/subscription/${subscriptionId}/receipt-url`
+    );
+    return response.data.data;
+  },
+
+  async getActivePlans(): Promise<SubscriptionPlan[]> {
+    const response = await api.get<{ success: boolean; data: SubscriptionPlan[] }>(
+      '/subscription-plan/active'
     );
     return response.data.data;
   },

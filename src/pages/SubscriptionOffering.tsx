@@ -1,36 +1,34 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Shield } from 'lucide-react';
-
-const plans = [
-  {
-    name: 'Basic',
-    price: '3',
-    features: [
-      'Manage up to 5 policies',
-      'Add up to 3 nominees',
-      'Document storage',
-      'Email support',
-    ],
-  },
-  {
-    name: 'Premium',
-    price: '5',
-    popular: true,
-    features: [
-      'Unlimited policies',
-      'Unlimited nominees',
-      'Document storage',
-      'Priority support',
-      'Advanced analytics',
-    ],
-  },
-];
+import { Check, Shield, Loader2 } from 'lucide-react';
+import { subscriptionService, SubscriptionPlan } from '../services/subscription.service';
 
 export default function SubscriptionOffering() {
   const navigate = useNavigate();
+  const [plans, setPlans] = useState<SubscriptionPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSelectPlan = (planName: string, amount: string) => {
-    navigate('/payment', { state: { planName, amount } });
+  useEffect(() => {
+    const loadPlans = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        const fetchedPlans = await subscriptionService.getActivePlans();
+        setPlans(fetchedPlans);
+      } catch (err: any) {
+        console.error('Failed to load subscription plans:', err);
+        setError(err.response?.data?.error || err.message || 'Failed to load subscription plans');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPlans();
+  }, []);
+
+  const handleSelectPlan = (planName: string, price: string) => {
+    navigate('/payment', { state: { planName, amount: price } });
   };
 
   return (
@@ -48,17 +46,40 @@ export default function SubscriptionOffering() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
-        {plans.map((plan) => (
-          <div
-            key={plan.name}
-            className={`card p-6 sm:p-8 relative overflow-hidden group border-2 ${
-              plan.popular 
-                ? 'border-orange-400/50 hover:border-orange-400 shadow-glow-orange' 
-                : 'border-cyan-400/30 hover:border-cyan-400/50'
-            } transition-all duration-300 hover:-translate-y-2`}
+      {loading ? (
+        <div className="flex flex-col items-center justify-center h-64 space-y-4">
+          <div className="relative">
+            <div className="animate-spin rounded-full h-16 w-16 border-4 border-brand-200 dark:border-brand-900 border-t-cyan-500 dark:border-t-cyan-400"></div>
+            <div className="absolute inset-0 rounded-full bg-gradient-brand opacity-20 blur-xl animate-pulse-glow"></div>
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 font-medium animate-pulse">Loading plans...</p>
+        </div>
+      ) : error ? (
+        <div className="card p-6 text-center">
+          <p className="text-red-500 dark:text-red-400">{error}</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="btn-brand mt-4"
           >
-            {plan.popular && (
+            Retry
+          </button>
+        </div>
+      ) : plans.length === 0 ? (
+        <div className="card p-6 text-center">
+          <p className="text-gray-600 dark:text-gray-400">No subscription plans available at the moment.</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+          {plans.map((plan) => (
+            <div
+              key={plan.id}
+              className={`card p-6 sm:p-8 relative overflow-hidden group border-2 ${
+                plan.isPopular 
+                  ? 'border-orange-400/50 hover:border-orange-400 shadow-glow-orange' 
+                  : 'border-cyan-400/30 hover:border-cyan-400/50'
+              } transition-all duration-300 hover:-translate-y-2`}
+            >
+              {plan.isPopular && (
               <>
                 <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-10">
                   <span className="badge badge-orange px-4 py-1 shadow-glow-orange">
@@ -69,33 +90,34 @@ export default function SubscriptionOffering() {
               </>
             )}
             <div className="relative">
-              <div className="text-center mb-6">
-                <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">{plan.name}</h3>
-                <div className="flex items-baseline justify-center">
-                  <span className="text-4xl sm:text-5xl font-bold text-gradient-brand">₹{plan.price}</span>
-                  <span className="text-gray-600 dark:text-gray-400 ml-2 text-lg">/year</span>
+                <div className="text-center mb-6">
+                  <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">{plan.name}</h3>
+                  <div className="flex items-baseline justify-center">
+                    <span className="text-4xl sm:text-5xl font-bold text-gradient-brand">₹{plan.price}</span>
+                    <span className="text-gray-600 dark:text-gray-400 ml-2 text-lg">/year</span>
+                  </div>
                 </div>
+                <ul className="space-y-3 mb-8">
+                  {plan.features.map((feature, index) => (
+                    <li key={index} className="flex items-start">
+                      <div className="relative p-1 bg-gradient-to-br from-cyan-400 to-brand-500 rounded-lg mr-3 mt-0.5 flex-shrink-0 shadow-glow-cyan">
+                        <Check className="w-4 h-4 text-white" />
+                      </div>
+                      <span className="text-gray-700 dark:text-gray-300">{feature}</span>
+                    </li>
+                  ))}
+                </ul>
+                <button
+                  onClick={() => handleSelectPlan(plan.name, plan.price)}
+                  className={`w-full ${plan.isPopular ? 'btn-orange' : 'btn-brand'} text-lg`}
+                >
+                  Select {plan.name}
+                </button>
               </div>
-              <ul className="space-y-3 mb-8">
-                {plan.features.map((feature, index) => (
-                  <li key={index} className="flex items-start">
-                    <div className="relative p-1 bg-gradient-to-br from-cyan-400 to-brand-500 rounded-lg mr-3 mt-0.5 flex-shrink-0 shadow-glow-cyan">
-                      <Check className="w-4 h-4 text-white" />
-                    </div>
-                    <span className="text-gray-700 dark:text-gray-300">{feature}</span>
-                  </li>
-                ))}
-              </ul>
-              <button
-                onClick={() => handleSelectPlan(plan.name, plan.price)}
-                className={`w-full ${plan.popular ? 'btn-orange' : 'btn-brand'} text-lg`}
-              >
-                Select {plan.name}
-              </button>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
