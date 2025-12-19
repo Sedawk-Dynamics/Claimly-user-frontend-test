@@ -7,7 +7,6 @@ export interface User {
   deviceId?: string;
   subscriptionStatus: 'ACTIVE' | 'INACTIVE' | 'EXPIRED';
   referralCode?: string | null;
-  referralCodeExpiresAt?: string | null;
   walletBalance?: number;
   createdAt: string;
   updatedAt: string;
@@ -26,6 +25,7 @@ export interface Subscription {
   paymentStatus: 'SUCCESS' | 'PENDING' | 'FAILED';
   transactionDate: string;
   expiresAt?: string | null;
+  walletAmountUsed?: string;
 }
 
 export interface SubscriptionStatus {

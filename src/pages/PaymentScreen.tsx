@@ -29,13 +29,19 @@ export default function PaymentScreen() {
     try {
       const balance = await walletService.getBalance();
       setWalletBalance(balance.balance);
-      // Auto-set wallet amount to available balance if user wants to use wallet
+      // Auto-set wallet amount to available balance (but don't auto-check the checkbox)
       if (balance.balance > 0) {
         const subscriptionAmount = parseFloat(amount);
-        setWalletAmount(Math.min(balance.balance, subscriptionAmount));
+        const initialWalletAmount = Math.min(balance.balance, subscriptionAmount);
+        setWalletAmount(initialWalletAmount);
+        console.log('Wallet balance loaded:', balance.balance, 'Initial wallet amount set to:', initialWalletAmount);
+      } else {
+        setWalletAmount(0);
       }
     } catch (err: any) {
       console.error('Failed to load wallet balance', err);
+      setWalletBalance(0);
+      setWalletAmount(0);
     }
   };
 
@@ -61,15 +67,34 @@ export default function PaymentScreen() {
 
     try {
       const subscriptionAmount = parseFloat(amount);
-      const walletAmountToUse = useWallet ? walletAmount : 0;
+      
+      // Ensure walletAmount is set correctly when useWallet is true
+      let walletAmountToUse = 0;
+      if (useWallet) {
+        // If wallet is checked but amount is 0 or invalid, set it to the minimum of balance and subscription amount
+        if (walletAmount <= 0 || isNaN(walletAmount)) {
+          walletAmountToUse = Math.min(walletBalance, subscriptionAmount);
+        } else {
+          walletAmountToUse = walletAmount;
+        }
+        
+        // Ensure walletAmountToUse is valid and positive
+        if (walletAmountToUse <= 0 || isNaN(walletAmountToUse)) {
+          setError('Please enter a valid wallet amount to use');
+          setLoading(false);
+          return;
+        }
+      }
 
       if (useWallet && walletAmountToUse > walletBalance) {
         setError('Insufficient wallet balance');
+        setLoading(false);
         return;
       }
 
       if (useWallet && walletAmountToUse > subscriptionAmount) {
         setError('Wallet amount cannot exceed subscription amount');
+        setLoading(false);
         return;
       }
 
@@ -77,22 +102,53 @@ export default function PaymentScreen() {
       // For now, we'll simulate a payment
       const paymentId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
+      // Debug: Log wallet usage
+      console.log('Payment submission:', {
+        useWallet,
+        walletAmount,
+        walletAmountToUse,
+        walletBalance,
+        subscriptionAmount: parseFloat(amount),
+        willSendWalletAmount: useWallet && walletAmountToUse > 0 ? walletAmountToUse.toString() : undefined,
+      });
+      
       // Create subscription with payment details
-      await subscriptionService.createSubscription({
+      // Always send walletAmountUsed as string when useWallet is true and amount > 0
+      const subscriptionResponse = await subscriptionService.createSubscription({
         planName,
         amount,
         paymentId,
         paymentStatus: 'SUCCESS',
         transactionDate: new Date().toISOString(),
-        walletAmountUsed: walletAmountToUse > 0 ? walletAmountToUse.toString() : undefined,
+        walletAmountUsed: useWallet && walletAmountToUse > 0 ? walletAmountToUse.toString() : undefined,
+      });
+
+      // Calculate final amount paid (use wallet amount from response if available, otherwise use local calculation)
+      const walletUsedFromResponse = subscriptionResponse.walletAmountUsed ? parseFloat(subscriptionResponse.walletAmountUsed) : walletAmountToUse;
+      const finalAmountPaid = subscriptionAmount - walletUsedFromResponse;
+
+      console.log('Payment successful:', {
+        subscriptionResponse,
+        walletUsedFromResponse,
+        finalAmountPaid,
+        originalAmount: subscriptionAmount,
       });
 
       // Clear subscription status cache to force refresh
       const CACHE_KEY = 'subscription-status-cache';
       sessionStorage.removeItem(CACHE_KEY);
 
-      // Navigate to payment success
-      navigate('/payment-success', { state: { planName, amount, paymentId } });
+      // Navigate to payment success with all relevant information
+      navigate('/payment-success', { 
+        state: { 
+          planName, 
+          amount: subscriptionAmount.toString(), // Original subscription amount
+          finalAmountPaid: finalAmountPaid.toFixed(2), // Amount actually paid
+          walletAmountUsed: walletUsedFromResponse > 0 ? walletUsedFromResponse.toFixed(2) : '0',
+          paymentId,
+          subscription: subscriptionResponse,
+        } 
+      });
     } catch (err: any) {
       setError(err.response?.data?.error || 'Payment failed. Please try again.');
     } finally {
@@ -120,8 +176,30 @@ export default function PaymentScreen() {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-gray-600 dark:text-gray-300">Subscription Amount:</span>
-              <span className="font-bold text-xl text-gray-900 dark:text-white">₹{amount}</span>
+              <span className="font-semibold text-gray-900 dark:text-white">₹{amount}</span>
             </div>
+            {useWallet && walletAmount > 0 && (
+              <>
+                <div className="flex justify-between items-center text-green-600 dark:text-green-400">
+                  <span className="text-gray-600 dark:text-gray-300">Wallet Discount:</span>
+                  <span className="font-semibold">-₹{walletAmount.toFixed(2)}</span>
+                </div>
+                <div className="pt-2 border-t border-gray-200">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-700 dark:text-gray-200 font-semibold">Amount to Pay:</span>
+                    <span className="font-bold text-xl text-brand-600 dark:text-brand-400">₹{(parseFloat(amount) - walletAmount).toFixed(2)}</span>
+                  </div>
+                </div>
+              </>
+            )}
+            {(!useWallet || walletAmount === 0) && (
+              <div className="pt-2 border-t border-gray-200">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-700 dark:text-gray-200 font-semibold">Amount to Pay:</span>
+                  <span className="font-bold text-xl text-gray-900 dark:text-white">₹{amount}</span>
+                </div>
+              </div>
+            )}
             {walletBalance > 0 && (
               <div className="pt-3 border-t border-gray-200">
                 <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 mb-3">
@@ -144,12 +222,26 @@ export default function PaymentScreen() {
                       id="useWallet"
                       checked={useWallet}
                       onChange={(e) => {
-                        setUseWallet(e.target.checked);
-                        if (e.target.checked) {
+                        const checked = e.target.checked;
+                        setUseWallet(checked);
+                        if (checked) {
                           const subscriptionAmount = parseFloat(amount);
-                          setWalletAmount(Math.min(walletBalance, subscriptionAmount));
+                          // Always set to the maximum available (minimum of balance and subscription amount)
+                          const amountToUse = Math.min(walletBalance, subscriptionAmount);
+                          // Only set if we have a valid positive amount
+                          if (amountToUse > 0 && walletBalance > 0) {
+                            setWalletAmount(amountToUse);
+                            console.log('Wallet checkbox checked, setting amount:', amountToUse, 'from balance:', walletBalance);
+                          } else {
+                            // If no balance, uncheck and show error
+                            setUseWallet(false);
+                            setWalletAmount(0);
+                            setError('No wallet balance available');
+                            console.log('Wallet checkbox checked but no balance available');
+                          }
                         } else {
                           setWalletAmount(0);
+                          console.log('Wallet checkbox unchecked');
                         }
                       }}
                       className="w-4 h-4 text-brand-600 border-gray-300 rounded focus:ring-brand-500"
@@ -171,11 +263,35 @@ export default function PaymentScreen() {
                         min="0"
                         max={Math.min(walletBalance, parseFloat(amount))}
                         step="0.01"
-                        value={walletAmount}
+                        value={walletAmount || ''}
                         onChange={(e) => {
-                          const value = parseFloat(e.target.value) || 0;
+                          const value = parseFloat(e.target.value);
                           const subscriptionAmount = parseFloat(amount);
-                          setWalletAmount(Math.min(Math.max(0, value), Math.min(walletBalance, subscriptionAmount)));
+                          // Ensure value is valid and within bounds
+                          if (!isNaN(value) && value >= 0) {
+                            const maxAllowed = Math.min(walletBalance, subscriptionAmount);
+                            const newAmount = Math.min(Math.max(0, value), maxAllowed);
+                            setWalletAmount(newAmount);
+                            console.log('Wallet amount changed:', newAmount, 'max allowed:', maxAllowed);
+                          } else if (e.target.value === '' || e.target.value === '0') {
+                            // Allow empty or 0 for user input, but ensure useWallet is handled
+                            setWalletAmount(0);
+                          }
+                        }}
+                        onBlur={(e) => {
+                          // On blur, ensure we have a valid amount if useWallet is checked
+                          if (useWallet) {
+                            const value = parseFloat(e.target.value) || 0;
+                            const subscriptionAmount = parseFloat(amount);
+                            const maxAllowed = Math.min(walletBalance, subscriptionAmount);
+                            if (value <= 0 || isNaN(value)) {
+                              // Auto-set to max if invalid
+                              setWalletAmount(maxAllowed);
+                            } else {
+                              // Ensure it's within bounds
+                              setWalletAmount(Math.min(value, maxAllowed));
+                            }
+                          }
                         }}
                         className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none"
                       />
@@ -211,92 +327,120 @@ export default function PaymentScreen() {
         )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label htmlFor="cardHolderName" className="block text-sm font-medium text-gray-700 mb-2">
-              Card Holder Name
-            </label>
-            <input
-              id="cardHolderName"
-              name="cardHolderName"
-              type="text"
-              value={formData.cardHolderName}
-              onChange={handleInputChange}
-              required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
-              placeholder="John Doe"
-            />
-          </div>
-
-          <div>
-            <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 mb-2">
-              Card Number
-            </label>
-            <div className="relative">
-              <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <input
-                id="cardNumber"
-                name="cardNumber"
-                type="text"
-                value={formData.cardNumber}
-                onChange={handleInputChange}
-                required
-                maxLength={19}
-                className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
-                placeholder="1234 5678 9012 3456"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 mb-2">
-                Expiry Date
-              </label>
-              <input
-                id="expiryDate"
-                name="expiryDate"
-                type="text"
-                value={formData.expiryDate}
-                onChange={handleInputChange}
-                required
-                maxLength={5}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
-                placeholder="MM/YY"
-              />
-            </div>
-
-            <div>
-              <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 mb-2">
-                CVV
-              </label>
-              <input
-                id="cvv"
-                name="cvv"
-                type="text"
-                value={formData.cvv}
-                onChange={handleInputChange}
-                required
-                maxLength={3}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
-                placeholder="123"
-              />
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading || (useWallet && walletAmount > 0 && parseFloat(amount) - walletAmount <= 0 && (!formData.cardNumber || !formData.cardHolderName))}
-            className="w-full bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white py-3 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center shadow-md hover:shadow-lg"
-          >
-            {loading ? (
-              'Processing...'
-            ) : (
+          {(() => {
+            const subscriptionAmount = parseFloat(amount);
+            const finalAmountToPay = useWallet && walletAmount > 0 
+              ? subscriptionAmount - walletAmount 
+              : subscriptionAmount;
+            const isWalletOnly = finalAmountToPay <= 0;
+            
+            return (
               <>
-                <Lock className="w-5 h-5 mr-2" />
-                Pay ₹{useWallet && walletAmount > 0 ? (parseFloat(amount) - walletAmount).toFixed(2) : amount}
+                {!isWalletOnly && (
+                  <>
+                    <div>
+                      <label htmlFor="cardHolderName" className="block text-sm font-medium text-gray-700 mb-2">
+                        Card Holder Name
+                      </label>
+                      <input
+                        id="cardHolderName"
+                        name="cardHolderName"
+                        type="text"
+                        value={formData.cardHolderName}
+                        onChange={handleInputChange}
+                        required={!isWalletOnly}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+                        placeholder="John Doe"
+                      />
+                    </div>
+
+                    <div>
+                      <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 mb-2">
+                        Card Number
+                      </label>
+                      <div className="relative">
+                        <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <input
+                          id="cardNumber"
+                          name="cardNumber"
+                          type="text"
+                          value={formData.cardNumber}
+                          onChange={handleInputChange}
+                          required={!isWalletOnly}
+                          maxLength={19}
+                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+                          placeholder="1234 5678 9012 3456"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 mb-2">
+                          Expiry Date
+                        </label>
+                        <input
+                          id="expiryDate"
+                          name="expiryDate"
+                          type="text"
+                          value={formData.expiryDate}
+                          onChange={handleInputChange}
+                          required={!isWalletOnly}
+                          maxLength={5}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+                          placeholder="MM/YY"
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 mb-2">
+                          CVV
+                        </label>
+                        <input
+                          id="cvv"
+                          name="cvv"
+                          type="text"
+                          value={formData.cvv}
+                          onChange={handleInputChange}
+                          required={!isWalletOnly}
+                          maxLength={3}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
+                          placeholder="123"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+                
+                {isWalletOnly && (
+                  <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                    <p className="text-sm text-green-800 dark:text-green-200">
+                      <strong>Great!</strong> Your wallet balance covers the full subscription amount. No card payment required.
+                    </p>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading || (!isWalletOnly && (!formData.cardNumber || !formData.cardHolderName || !formData.expiryDate || !formData.cvv))}
+                  className="w-full bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white py-3 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center shadow-md hover:shadow-lg"
+                >
+                  {loading ? (
+                    'Processing...'
+                  ) : (
+                    <>
+                      <Lock className="w-5 h-5 mr-2" />
+                      {isWalletOnly ? (
+                        'Complete Purchase with Wallet'
+                      ) : (
+                        `Pay ₹${finalAmountToPay.toFixed(2)}`
+                      )}
+                    </>
+                  )}
+                </button>
               </>
-            )}
-          </button>
+            );
+          })()}
         </form>
 
         <p className="text-xs text-gray-500 text-center mt-4">

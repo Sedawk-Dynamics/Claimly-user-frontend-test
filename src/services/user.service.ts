@@ -24,9 +24,9 @@ export const userService = {
     return response.data.data;
   },
 
-  async generateReferralCode(regenerate: boolean = false): Promise<{ referralCode: string; expiresAt: string }> {
-    const response = await api.post<{ success: boolean; data: { referralCode: string; expiresAt: string } }>(
-      `/user/referral-code${regenerate ? '?regenerate=true' : ''}`
+  async generateReferralCode(): Promise<{ referralCode: string }> {
+    const response = await api.post<{ success: boolean; data: { referralCode: string } }>(
+      `/user/referral-code`
     );
     return response.data.data;
   },

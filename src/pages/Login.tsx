@@ -132,7 +132,16 @@ export default function Login() {
       localStorage.setItem('user', JSON.stringify(response.user));
       navigate('/');
     } catch (err: any) {
-      setError(err.response?.data?.error || err.message || 'Signup failed. Please try again.');
+      const errorMessage = err.response?.data?.error || err.message || 'Signup failed. Please try again.';
+      
+      // Handle invalid referral code
+      if (errorMessage.includes('Invalid referral code')) {
+        setError('The referral code you entered is invalid. Please check and try again or continue without one.');
+        // Clear the referral code field
+        setReferralCode('');
+      } else {
+        setError(errorMessage);
+      }
     } finally {
       setLoading(false);
     }
@@ -329,7 +338,7 @@ export default function Login() {
                   className="w-full px-4 py-3.5 bg-white/90 border-2 border-cyan-400/30 rounded-xl text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all duration-300 backdrop-blur-sm hover:border-cyan-400/50 uppercase"
                   placeholder="CLM1234567"
                 />
-                <p className="text-xs text-gray-500">Enter a referral code if you have one</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Enter a referral code if you have one</p>
               </div>
 
               <button

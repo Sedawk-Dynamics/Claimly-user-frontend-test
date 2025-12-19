@@ -4,7 +4,7 @@ import { userService, documentService } from '../services/user.service';
 import { policyService, policyDocumentService } from '../services/policy.service';
 import { nomineeService, nomineeDocumentService } from '../services/nominee.service';
 import { User, UserDocument, Policy, Nominee } from '../types';
-import { User as UserIcon, Mail, Phone, Calendar, Save, FileText, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw, Gift, Copy, Check, RefreshCw, AlertCircle, Wallet, TrendingUp } from 'lucide-react';
+import { User as UserIcon, Mail, Phone, Calendar, Save, FileText, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw, Gift, Copy, Check, AlertCircle, Wallet, TrendingUp } from 'lucide-react';
 import KycSection from '../components/KycSection';
 import { useRequireActiveSubscription } from '../hooks/useRequireActiveSubscription';
 import { walletService } from '../services/wallet.service';
@@ -30,7 +30,6 @@ export default function Profile() {
   const [updatingDocument, setUpdatingDocument] = useState<string | null>(null);
   const [updateFiles, setUpdateFiles] = useState<{ [key: string]: File | null }>({});
   const [generatingReferralCode, setGeneratingReferralCode] = useState(false);
-  const [regeneratingReferralCode, setRegeneratingReferralCode] = useState(false);
   const [copied, setCopied] = useState(false);
   const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
   const [loadingWallet, setLoadingWallet] = useState(false);
@@ -356,34 +355,15 @@ export default function Profile() {
         </h2>
         
         <div className="bg-gradient-to-r from-brand-50 to-cyan-50 dark:from-brand-900/20 dark:to-cyan-900/20 rounded-lg p-6 border-2 border-brand-200 dark:border-brand-700">
-          {user?.referralCode ? (() => {
-            const isExpired = user.referralCodeExpiresAt 
-              ? new Date(user.referralCodeExpiresAt) <= new Date()
-              : false;
-            const expiresAt = user.referralCodeExpiresAt 
-              ? new Date(user.referralCodeExpiresAt)
-              : null;
-            const daysRemaining = expiresAt 
-              ? Math.ceil((expiresAt.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24))
-              : null;
-
-            return (
+          {user?.referralCode ? (
               <div className="space-y-4">
-                {isExpired && (
-                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 flex items-center space-x-2">
-                    <AlertCircle className="w-5 h-5 text-orange-600" />
-                    <p className="text-sm text-orange-800 font-medium">
-                      This referral code has expired. Please regenerate a new code.
-                    </p>
-                  </div>
-                )}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     Your Referral Code
                   </label>
                   <div className="flex items-center space-x-3 flex-wrap gap-3">
-                    <div className={`flex-1 min-w-[200px] bg-white dark:bg-gray-700 rounded-lg px-4 py-3 border-2 ${isExpired ? 'border-orange-300 dark:border-orange-600 bg-orange-50 dark:bg-orange-900/20' : 'border-brand-300 dark:border-brand-600'}`}>
-                      <code className={`text-2xl font-bold tracking-wider block ${isExpired ? 'text-orange-700 dark:text-orange-400 line-through' : 'text-brand-700 dark:text-brand-400'}`}>
+                    <div className="flex-1 min-w-[200px] bg-white dark:bg-gray-700 rounded-lg px-4 py-3 border-2 border-brand-300 dark:border-brand-600">
+                      <code className="text-2xl font-bold tracking-wider block text-brand-700 dark:text-brand-400">
                         {user.referralCode}
                       </code>
                     </div>
@@ -414,57 +394,13 @@ export default function Profile() {
                     </button>
                   </div>
                 </div>
-                {expiresAt && (
-                  <div className="flex items-center space-x-2 text-sm">
-                    <Clock className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                    {isExpired ? (
-                      <span className="text-orange-600 dark:text-orange-400 font-medium">Expired on {expiresAt.toLocaleDateString()}</span>
-                    ) : (
-                      <span className="text-gray-600 dark:text-gray-300">
-                        Expires on {expiresAt.toLocaleDateString()} ({daysRemaining} {daysRemaining === 1 ? 'day' : 'days'} remaining)
-                      </span>
-                    )}
-                  </div>
-                )}
-                <div className="flex items-center space-x-3 flex-wrap gap-3">
-                  <button
-                    onClick={async () => {
-                      setRegeneratingReferralCode(true);
-                      setError('');
-                      try {
-                        await userService.generateReferralCode(true);
-                        await loadProfile(); // Reload profile to get the new code
-                        setSuccess('Referral code regenerated successfully!');
-                      } catch (err: any) {
-                        setError(err.response?.data?.error || 'Failed to regenerate referral code');
-                      } finally {
-                        setRegeneratingReferralCode(false);
-                      }
-                    }}
-                    disabled={regeneratingReferralCode}
-                    className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 dark:bg-cyan-500 dark:hover:bg-cyan-600 text-white rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2 font-medium shadow-md hover:shadow-lg whitespace-nowrap"
-                  >
-                    {regeneratingReferralCode ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
-                        <span>Regenerating...</span>
-                      </>
-                    ) : (
-                      <>
-                        <RefreshCw className="w-4 h-4" />
-                        <span>Regenerate Code</span>
-                      </>
-                    )}
-                  </button>
-                </div>
                 <p className="text-sm text-gray-600 dark:text-gray-300">
                   Share this code with your friends! When they sign up using your referral code, and they take subscription you will get 10% in your wallet.
                 </p>
               </div>
-            );
-          })() : (
+          ) : (
             <div className="space-y-4">
-              <p className="text-gray-700">
+              <p className="text-gray-700 dark:text-gray-300">
                 You don't have a referral code yet. Generate one to start referring friends!
               </p>
               <button
@@ -472,7 +408,7 @@ export default function Profile() {
                   setGeneratingReferralCode(true);
                   setError('');
                   try {
-                    await userService.generateReferralCode(false);
+                    await userService.generateReferralCode();
                     await loadProfile(); // Reload profile to get the new code
                     setSuccess('Referral code generated successfully!');
                   } catch (err: any) {
