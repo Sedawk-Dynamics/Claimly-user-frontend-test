@@ -68,16 +68,18 @@ export async function requestNotificationPermission(): Promise<string | null> {
     }
     
     // Also listen for service worker updates and send config
-    registration.addEventListener('updatefound', () => {
-      const newWorker = registration.installing;
-      if (newWorker) {
-        newWorker.addEventListener('statechange', async () => {
-          if (newWorker.state === 'activated' && registration.active) {
-            await sendConfigToSW(registration.active);
-          }
-        });
-      }
-    });
+    if (registration) {
+      registration.addEventListener('updatefound', () => {
+        const newWorker = registration.installing;
+        if (newWorker) {
+          newWorker.addEventListener('statechange', async () => {
+            if (newWorker.state === 'activated' && registration.active) {
+              await sendConfigToSW(registration.active);
+            }
+          });
+        }
+      });
+    }
 
     // Request permission
     const permission = await Notification.requestPermission();
