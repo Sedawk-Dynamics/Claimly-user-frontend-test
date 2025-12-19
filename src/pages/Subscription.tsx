@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { userService } from '../services/user.service';
+import { subscriptionService } from '../services/subscription.service';
 import { SubscriptionStatus, Subscription as SubscriptionType } from '../types';
-import { CreditCard, Check, X, Clock, Calendar, Plus } from 'lucide-react';
+import { CreditCard, Check, X, Clock, Calendar, Plus, Download } from 'lucide-react';
 import { format, differenceInDays } from 'date-fns';
 import { useRequireActiveSubscription } from '../hooks/useRequireActiveSubscription';
 
@@ -161,6 +162,27 @@ export default function Subscription() {
               </div>
             )}
 
+            {/* Download Receipt Section */}
+            {currentSubscription.subscription.receiptUrl && (
+              <div className="mt-4">
+                <button
+                  onClick={async () => {
+                    try {
+                      // Download our own generated PDF receipt
+                      await subscriptionService.downloadReceipt(currentSubscription.subscription!.id);
+                    } catch (error) {
+                      console.error('Error downloading receipt:', error);
+                      alert('Failed to download receipt. Please try again.');
+                    }
+                  }}
+                  className="w-full px-4 py-3 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2"
+                >
+                  <Download className="w-5 h-5" />
+                  <span>Download Receipt</span>
+                </button>
+              </div>
+            )}
+
             {/* Extend Subscription Section */}
             <div className="mt-6 p-4 bg-gradient-to-r from-brand-50 to-cyan-50 dark:from-brand-900/20 dark:to-cyan-900/20 rounded-xl border-2 border-brand-200 dark:border-brand-700">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -246,6 +268,25 @@ export default function Subscription() {
                           <p className="font-mono text-xs text-gray-900 dark:text-gray-100">{sub.paymentId}</p>
                         </div>
                       </div>
+                      {sub.receiptUrl && sub.paymentStatus === 'SUCCESS' && (
+                        <div className="mt-4">
+                          <button
+                            onClick={async () => {
+                              try {
+                                // Download our own generated PDF receipt
+                                await subscriptionService.downloadReceipt(sub.id);
+                              } catch (error) {
+                                console.error('Error downloading receipt:', error);
+                                alert('Failed to download receipt. Please try again.');
+                              }
+                            }}
+                            className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2"
+                          >
+                            <Download className="w-4 h-4" />
+                            <span>Download Receipt</span>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

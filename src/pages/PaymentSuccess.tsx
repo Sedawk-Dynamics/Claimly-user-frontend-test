@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { CheckCircle, Home, AlertCircle } from 'lucide-react';
+import { CheckCircle, Home, AlertCircle, Download } from 'lucide-react';
 import { userService } from '../services/user.service';
+import { subscriptionService } from '../services/subscription.service';
 
 export default function PaymentSuccess() {
   const navigate = useNavigate();
@@ -138,23 +139,42 @@ export default function PaymentSuccess() {
           </div>
         )}
 
-        <button
-          onClick={() => {
-            // Clear cache before navigating
-            const CACHE_KEY = 'subscription-status-cache';
-            sessionStorage.removeItem(CACHE_KEY);
-            // Refresh subscription status
-            userService.getSubscription().catch((error) => {
-              console.error('Error refreshing subscription status:', error);
-            });
-            navigate('/');
-          }}
-          disabled={loading}
-          className="inline-flex items-center bg-primary-600 dark:bg-brand-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 dark:hover:bg-brand-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Home className="w-5 h-5 mr-2" />
-          {loading ? 'Loading...' : 'Go to Homepage'}
-        </button>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          {subscription?.id && subscription?.receiptUrl && (
+            <button
+              onClick={async () => {
+                try {
+                  // Download our own generated PDF receipt
+                  await subscriptionService.downloadReceipt(subscription.id);
+                } catch (error) {
+                  console.error('Error downloading receipt:', error);
+                  alert('Failed to download receipt. Please try again.');
+                }
+              }}
+              className="inline-flex items-center bg-gray-600 dark:bg-gray-700 text-white px-6 py-3 rounded-lg font-medium hover:bg-gray-700 dark:hover:bg-gray-600 transition"
+            >
+              <Download className="w-5 h-5 mr-2" />
+              Download Receipt
+            </button>
+          )}
+          <button
+            onClick={() => {
+              // Clear cache before navigating
+              const CACHE_KEY = 'subscription-status-cache';
+              sessionStorage.removeItem(CACHE_KEY);
+              // Refresh subscription status
+              userService.getSubscription().catch((error) => {
+                console.error('Error refreshing subscription status:', error);
+              });
+              navigate('/');
+            }}
+            disabled={loading}
+            className="inline-flex items-center bg-primary-600 dark:bg-brand-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-primary-700 dark:hover:bg-brand-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Home className="w-5 h-5 mr-2" />
+            {loading ? 'Loading...' : 'Go to Homepage'}
+          </button>
+        </div>
 
         <p className="text-sm text-gray-500 dark:text-gray-400 mt-4">
           Redirecting to homepage in 5 seconds...

@@ -26,6 +26,7 @@ export interface Subscription {
   transactionDate: string;
   expiresAt?: string | null;
   walletAmountUsed?: string;
+  receiptUrl?: string | null;
 }
 
 export interface SubscriptionStatus {

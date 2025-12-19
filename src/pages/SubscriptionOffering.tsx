@@ -4,7 +4,7 @@ import { Check, Shield } from 'lucide-react';
 const plans = [
   {
     name: 'Basic',
-    price: '499',
+    price: '3',
     features: [
       'Manage up to 5 policies',
       'Add up to 3 nominees',
@@ -14,7 +14,7 @@ const plans = [
   },
   {
     name: 'Premium',
-    price: '999',
+    price: '5',
     popular: true,
     features: [
       'Unlimited policies',

@@ -2,19 +2,21 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { subscriptionService } from '../services/subscription.service';
 import { walletService } from '../services/wallet.service';
-import { CreditCard, Lock, ArrowLeft, Wallet } from 'lucide-react';
+import { paymentService } from '../services/payment.service';
+import { Lock, ArrowLeft, Wallet } from 'lucide-react';
+
+// Declare Razorpay types
+declare global {
+  interface Window {
+    Razorpay: any;
+  }
+}
 
 export default function PaymentScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { planName, amount } = location.state || { planName: 'Basic', amount: '499' };
+  const { planName, amount } = location.state || { planName: 'Basic', amount: '3' };
 
-  const [formData, setFormData] = useState({
-    cardNumber: '',
-    expiryDate: '',
-    cvv: '',
-    cardHolderName: '',
-  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [walletBalance, setWalletBalance] = useState(0);
@@ -23,7 +25,24 @@ export default function PaymentScreen() {
 
   useEffect(() => {
     loadWalletBalance();
+    loadRazorpayScript();
   }, []);
+
+  const loadRazorpayScript = () => {
+    return new Promise((resolve, reject) => {
+      if (window.Razorpay) {
+        resolve(window.Razorpay);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.async = true;
+      script.onload = () => resolve(window.Razorpay);
+      script.onerror = () => reject(new Error('Failed to load Razorpay script'));
+      document.body.appendChild(script);
+    });
+  };
 
   const loadWalletBalance = async () => {
     try {
@@ -45,20 +64,6 @@ export default function PaymentScreen() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    if (name === 'cardNumber') {
-      const formatted = value.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim();
-      setFormData({ ...formData, [name]: formatted.slice(0, 19) });
-    } else if (name === 'expiryDate') {
-      const formatted = value.replace(/\D/g, '').replace(/(\d{2})(\d)/, '$1/$2').slice(0, 5);
-      setFormData({ ...formData, [name]: formatted });
-    } else if (name === 'cvv') {
-      setFormData({ ...formData, [name]: value.replace(/\D/g, '').slice(0, 3) });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,60 +103,127 @@ export default function PaymentScreen() {
         return;
       }
 
-      // In a real app, this would integrate with a payment gateway
-      // For now, we'll simulate a payment
-      const paymentId = `pay_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      // Debug: Log wallet usage
-      console.log('Payment submission:', {
-        useWallet,
-        walletAmount,
-        walletAmountToUse,
-        walletBalance,
-        subscriptionAmount: parseFloat(amount),
-        willSendWalletAmount: useWallet && walletAmountToUse > 0 ? walletAmountToUse.toString() : undefined,
-      });
-      
-      // Create subscription with payment details
-      // Always send walletAmountUsed as string when useWallet is true and amount > 0
-      const subscriptionResponse = await subscriptionService.createSubscription({
-        planName,
-        amount,
-        paymentId,
-        paymentStatus: 'SUCCESS',
-        transactionDate: new Date().toISOString(),
-        walletAmountUsed: useWallet && walletAmountToUse > 0 ? walletAmountToUse.toString() : undefined,
-      });
+      // Calculate final amount to pay
+      const finalAmountToPay = subscriptionAmount - walletAmountToUse;
 
-      // Calculate final amount paid (use wallet amount from response if available, otherwise use local calculation)
-      const walletUsedFromResponse = subscriptionResponse.walletAmountUsed ? parseFloat(subscriptionResponse.walletAmountUsed) : walletAmountToUse;
-      const finalAmountPaid = subscriptionAmount - walletUsedFromResponse;
-
-      console.log('Payment successful:', {
-        subscriptionResponse,
-        walletUsedFromResponse,
-        finalAmountPaid,
-        originalAmount: subscriptionAmount,
-      });
-
-      // Clear subscription status cache to force refresh
-      const CACHE_KEY = 'subscription-status-cache';
-      sessionStorage.removeItem(CACHE_KEY);
-
-      // Navigate to payment success with all relevant information
-      navigate('/payment-success', { 
-        state: { 
-          planName, 
-          amount: subscriptionAmount.toString(), // Original subscription amount
-          finalAmountPaid: finalAmountPaid.toFixed(2), // Amount actually paid
-          walletAmountUsed: walletUsedFromResponse > 0 ? walletUsedFromResponse.toFixed(2) : '0',
+      // If wallet covers the full amount, create subscription directly
+      if (finalAmountToPay <= 0) {
+        const paymentId = `wallet_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        const subscriptionResponse = await subscriptionService.createSubscription({
+          planName,
+          amount,
           paymentId,
-          subscription: subscriptionResponse,
-        } 
-      });
+          paymentStatus: 'SUCCESS',
+          transactionDate: new Date().toISOString(),
+          walletAmountUsed: walletAmountToUse.toString(),
+        });
+
+        const walletUsedFromResponse = subscriptionResponse.walletAmountUsed ? parseFloat(subscriptionResponse.walletAmountUsed) : walletAmountToUse;
+        const finalAmountPaid = subscriptionAmount - walletUsedFromResponse;
+
+        // Clear subscription status cache
+        const CACHE_KEY = 'subscription-status-cache';
+        sessionStorage.removeItem(CACHE_KEY);
+
+        navigate('/payment-success', { 
+          state: { 
+            planName, 
+            amount: subscriptionAmount.toString(),
+            finalAmountPaid: finalAmountPaid.toFixed(2),
+            walletAmountUsed: walletUsedFromResponse > 0 ? walletUsedFromResponse.toFixed(2) : '0',
+            paymentId,
+            subscription: subscriptionResponse,
+          } 
+        });
+        return;
+      }
+
+      // For Razorpay payment, create order and open checkout
+      try {
+        // Load Razorpay script
+        await loadRazorpayScript();
+
+        // Create payment order
+        const orderResponse = await paymentService.createOrder({
+          amount: finalAmountToPay,
+          currency: 'INR',
+          receipt: `receipt_${Date.now()}`,
+          notes: {
+            planName,
+            subscriptionAmount: subscriptionAmount.toString(),
+            walletAmountUsed: walletAmountToUse.toString(),
+          },
+        });
+
+        // Open Razorpay Checkout
+        const options = {
+          key: orderResponse.key_id,
+          amount: orderResponse.amount,
+          currency: orderResponse.currency,
+          name: 'Claimly',
+          description: `Subscription: ${planName}`,
+          order_id: orderResponse.id,
+          handler: async (response: any) => {
+            try {
+              // Verify payment and create subscription
+              const verifyResult = await paymentService.verifyPayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+                planName,
+                amount,
+                walletAmountUsed: walletAmountToUse > 0 ? walletAmountToUse.toString() : undefined,
+              });
+
+              const subscription = verifyResult.subscription;
+              const walletUsedFromResponse = subscription.walletAmountUsed ? parseFloat(subscription.walletAmountUsed) : walletAmountToUse;
+              const finalAmountPaid = subscriptionAmount - walletUsedFromResponse;
+
+              // Clear subscription status cache
+              const CACHE_KEY = 'subscription-status-cache';
+              sessionStorage.removeItem(CACHE_KEY);
+
+              navigate('/payment-success', { 
+                state: { 
+                  planName, 
+                  amount: subscriptionAmount.toString(),
+                  finalAmountPaid: finalAmountPaid.toFixed(2),
+                  walletAmountUsed: walletUsedFromResponse > 0 ? walletUsedFromResponse.toFixed(2) : '0',
+                  paymentId: response.razorpay_payment_id,
+                  subscription,
+                } 
+              });
+            } catch (verifyError: any) {
+              setError(verifyError.response?.data?.error || 'Payment verification failed. Please contact support.');
+              setLoading(false);
+            }
+          },
+          prefill: {
+            name: '',
+            email: '',
+            contact: '',
+          },
+          theme: {
+            color: '#0ea5e9',
+          },
+          modal: {
+            ondismiss: () => {
+              setLoading(false);
+            },
+          },
+        };
+
+        const razorpay = new window.Razorpay(options);
+        razorpay.open();
+      } catch (razorpayError: any) {
+        console.error('Razorpay error:', razorpayError);
+        setError(razorpayError.response?.data?.error || 'Failed to initialize payment. Please try again.');
+        setLoading(false);
+      }
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Payment failed. Please try again.');
-    } finally {
+      console.error('Payment error:', err);
+      setError(err.response?.data?.error || err.message || 'Payment failed. Please try again.');
       setLoading(false);
     }
   };
@@ -336,93 +408,25 @@ export default function PaymentScreen() {
             
             return (
               <>
-                {!isWalletOnly && (
-                  <>
-                    <div>
-                      <label htmlFor="cardHolderName" className="block text-sm font-medium text-gray-700 mb-2">
-                        Card Holder Name
-                      </label>
-                      <input
-                        id="cardHolderName"
-                        name="cardHolderName"
-                        type="text"
-                        value={formData.cardHolderName}
-                        onChange={handleInputChange}
-                        required={!isWalletOnly}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
-                        placeholder="John Doe"
-                      />
-                    </div>
-
-                    <div>
-                      <label htmlFor="cardNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                        Card Number
-                      </label>
-                      <div className="relative">
-                        <CreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                        <input
-                          id="cardNumber"
-                          name="cardNumber"
-                          type="text"
-                          value={formData.cardNumber}
-                          onChange={handleInputChange}
-                          required={!isWalletOnly}
-                          maxLength={19}
-                          className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
-                          placeholder="1234 5678 9012 3456"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label htmlFor="expiryDate" className="block text-sm font-medium text-gray-700 mb-2">
-                          Expiry Date
-                        </label>
-                        <input
-                          id="expiryDate"
-                          name="expiryDate"
-                          type="text"
-                          value={formData.expiryDate}
-                          onChange={handleInputChange}
-                          required={!isWalletOnly}
-                          maxLength={5}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
-                          placeholder="MM/YY"
-                        />
-                      </div>
-
-                      <div>
-                        <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 mb-2">
-                          CVV
-                        </label>
-                        <input
-                          id="cvv"
-                          name="cvv"
-                          type="text"
-                          value={formData.cvv}
-                          onChange={handleInputChange}
-                          required={!isWalletOnly}
-                          maxLength={3}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
-                          placeholder="123"
-                        />
-                      </div>
-                    </div>
-                  </>
-                )}
-                
                 {isWalletOnly && (
                   <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
                     <p className="text-sm text-green-800 dark:text-green-200">
-                      <strong>Great!</strong> Your wallet balance covers the full subscription amount. No card payment required.
+                      <strong>Great!</strong> Your wallet balance covers the full subscription amount. No payment required.
+                    </p>
+                  </div>
+                )}
+
+                {!isWalletOnly && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                    <p className="text-sm text-blue-800 dark:text-blue-200">
+                      You will be redirected to Razorpay's secure payment gateway to complete your payment.
                     </p>
                   </div>
                 )}
 
                 <button
                   type="submit"
-                  disabled={loading || (!isWalletOnly && (!formData.cardNumber || !formData.cardHolderName || !formData.expiryDate || !formData.cvv))}
+                  disabled={loading}
                   className="w-full bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white py-3 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center shadow-md hover:shadow-lg"
                 >
                   {loading ? (
@@ -433,7 +437,7 @@ export default function PaymentScreen() {
                       {isWalletOnly ? (
                         'Complete Purchase with Wallet'
                       ) : (
-                        `Pay ₹${finalAmountToPay.toFixed(2)}`
+                        `Pay ₹${finalAmountToPay.toFixed(2)} via Razorpay`
                       )}
                     </>
                   )}
