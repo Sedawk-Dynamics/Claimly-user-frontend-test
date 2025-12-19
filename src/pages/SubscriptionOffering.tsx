@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Shield, Loader2 } from 'lucide-react';
+import { Check, Shield } from 'lucide-react';
 import { subscriptionService, SubscriptionPlan } from '../services/subscription.service';
 
 export default function SubscriptionOffering() {
