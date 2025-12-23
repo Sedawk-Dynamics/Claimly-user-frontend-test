@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { userService, documentService } from '../services/user.service';
 import { policyService, policyDocumentService } from '../services/policy.service';
 import { nomineeService, nomineeDocumentService } from '../services/nominee.service';
-import { User, UserDocument, Policy, Nominee } from '../types';
+import { User, UserDocument, Policy, Nominee, NomineeDocument } from '../types';
 import { User as UserIcon, Mail, Phone, Calendar, Save, FileText, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw, Gift, Copy, Check, Wallet, TrendingUp } from 'lucide-react';
 import KycSection from '../components/KycSection';
 import { useSubscriptionStatus } from '../hooks/useSubscriptionStatus';
@@ -314,7 +314,7 @@ export default function Profile() {
     );
   };
 
-  const renderNomineeDocumentRow = (nomineeId: string, document: Nominee['documents'][number]) => {
+  const renderNomineeDocumentRow = (nomineeId: string, document: NomineeDocument) => {
     const isUpdating = updatingDocument === document.id;
     const hasUpdateFile = updateFiles[document.id] !== null && updateFiles[document.id] !== undefined;
     const isReverification = !document.isVerified && document.verifiedAt !== null && document.verifiedAt !== undefined;
