@@ -19,6 +19,7 @@ export default function AddNominee() {
     name: '',
     relationship: 'SPOUSE' as 'SPOUSE' | 'CHILD' | 'PARENT' | 'SIBLING' | 'FRIEND' | 'OTHER',
     mobileNumber: '',
+    dob: '',
     email: '',
     address: '',
   });
@@ -189,6 +190,20 @@ export default function AddNominee() {
                 maxLength={10}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
                 placeholder="9876543210"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-2">
+                Date of Birth *
+              </label>
+              <input
+                id="dob"
+                type="date"
+                value={formData.dob}
+                onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+                required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
               />
             </div>
 

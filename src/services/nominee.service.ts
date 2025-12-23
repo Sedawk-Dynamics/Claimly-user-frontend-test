@@ -16,6 +16,7 @@ export const nomineeService = {
     name: string;
     relationship: 'SPOUSE' | 'CHILD' | 'PARENT' | 'SIBLING' | 'FRIEND' | 'OTHER';
     mobileNumber: string;
+    dob: string;
     email?: string;
     address?: string;
   }): Promise<Nominee> {
@@ -29,6 +30,7 @@ export const nomineeService = {
       name?: string;
       relationship?: 'SPOUSE' | 'CHILD' | 'PARENT' | 'SIBLING' | 'FRIEND' | 'OTHER';
       mobileNumber?: string;
+      dob?: string;
       email?: string;
       address?: string;
       documentsToAdd?: Array<{
@@ -51,6 +53,7 @@ export const nomineeService = {
     if (data.name) formData.append('name', data.name);
     if (data.relationship) formData.append('relationship', data.relationship);
     if (data.mobileNumber) formData.append('mobileNumber', data.mobileNumber);
+    if (data.dob) formData.append('dob', data.dob);
     if (data.email !== undefined) formData.append('email', data.email || '');
     if (data.address !== undefined) formData.append('address', data.address || '');
 

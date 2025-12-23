@@ -33,6 +33,7 @@ export default function EditNominee() {
     name: '',
     relationship: 'SPOUSE' as Relationship,
     mobileNumber: '',
+    dob: '',
     email: '',
     address: '',
   });
@@ -55,6 +56,7 @@ export default function EditNominee() {
           name: nominee.name,
           relationship: nominee.relationship as Relationship,
           mobileNumber: nominee.mobileNumber,
+          dob: nominee.dob || '',
           email: nominee.email || '',
           address: nominee.address || '',
         });
@@ -202,6 +204,7 @@ export default function EditNominee() {
         name: formData.name,
         relationship: formData.relationship,
         mobileNumber: formData.mobileNumber,
+        dob: formData.dob,
         email: formData.email || undefined,
         address: formData.address || undefined,
         documentsToAdd: validNewDocuments.map((doc) => ({
@@ -308,6 +311,20 @@ export default function EditNominee() {
               maxLength={10}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition"
               placeholder="9876543210"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-2">
+              Date of Birth *
+            </label>
+            <input
+              id="dob"
+              type="date"
+              value={formData.dob}
+              onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
+              required
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition"
             />
           </div>
 

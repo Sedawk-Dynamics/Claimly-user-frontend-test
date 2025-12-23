@@ -39,6 +39,7 @@ export interface Nominee {
   name: string;
   relationship: 'SPOUSE' | 'CHILD' | 'PARENT' | 'SIBLING' | 'FRIEND' | 'OTHER';
   mobileNumber: string;
+  dob: string | null;
   email?: string;
   address?: string;
   createdAt: string;

@@ -242,6 +242,14 @@ export default function NomineesList() {
                     <span className="text-gray-600 dark:text-gray-400 font-semibold">Phone:</span>
                     <span className="text-gray-900 dark:text-white ml-2">{nominee.mobileNumber}</span>
                   </div>
+                  {nominee.dob && (
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400 font-semibold">Date of Birth:</span>
+                      <span className="text-gray-900 dark:text-white ml-2">
+                        {new Date(nominee.dob).toLocaleDateString()}
+                      </span>
+                    </div>
+                  )}
                   {nominee.email && (
                     <div>
                       <span className="text-gray-600 dark:text-gray-400 font-semibold">Email:</span>
