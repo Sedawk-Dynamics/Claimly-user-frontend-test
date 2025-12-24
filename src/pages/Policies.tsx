@@ -88,6 +88,7 @@ export default function Policies() {
         name: link.nominee.name,
         relationship: link.nominee.relationship as Nominee['relationship'],
         mobileNumber: '',
+        dob: null,
         email: undefined,
         address: undefined,
         createdAt: '',
