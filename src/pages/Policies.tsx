@@ -341,6 +341,8 @@ export default function Policies() {
                         ? 'badge badge-warning'
                         : policy.status === 'REJECTED'
                         ? 'badge badge-danger'
+                        : policy.status === 'DRAFT'
+                        ? 'badge badge-warning'
                         : 'status-inactive';
                       return (
                         <span className={statusClass}>
