@@ -14,10 +14,15 @@ export const policyService = {
 
   async createPolicy(data: {
     insuranceCompanyId: string;
-    policyNumber: string;
-    sumAssured: string;
+    policyNumber?: string;
+    sumAssured?: string;
   }): Promise<Policy> {
-    const response = await api.post<{ success: boolean; data: Policy }>('/policies', data);
+    // Drop empty strings so backend can auto-classify draft vs complete
+    const payload: any = { insuranceCompanyId: data.insuranceCompanyId };
+    if (data.policyNumber) payload.policyNumber = data.policyNumber;
+    if (data.sumAssured) payload.sumAssured = data.sumAssured;
+
+    const response = await api.post<{ success: boolean; data: Policy }>('/policies', payload);
     return response.data.data;
   },
 

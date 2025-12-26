@@ -14,13 +14,21 @@ export const nomineeService = {
 
   async createNominee(data: {
     name: string;
-    relationship: 'SPOUSE' | 'CHILD' | 'PARENT' | 'SIBLING' | 'FRIEND' | 'OTHER';
-    mobileNumber: string;
-    dob: string;
+    relationship?: 'SPOUSE' | 'CHILD' | 'PARENT' | 'SIBLING' | 'FRIEND' | 'OTHER';
+    mobileNumber?: string;
+    dob?: string;
     email?: string;
     address?: string;
   }): Promise<Nominee> {
-    const response = await api.post<{ success: boolean; data: Nominee }>('/nominees', data);
+    // Drop empty strings so backend can auto-classify draft vs complete
+    const payload: any = { name: data.name };
+    if (data.relationship) payload.relationship = data.relationship;
+    if (data.mobileNumber) payload.mobileNumber = data.mobileNumber;
+    if (data.dob) payload.dob = data.dob;
+    if (data.email !== undefined) payload.email = data.email || undefined;
+    if (data.address !== undefined) payload.address = data.address || undefined;
+
+    const response = await api.post<{ success: boolean; data: Nominee }>('/nominees', payload);
     return response.data.data;
   },
 

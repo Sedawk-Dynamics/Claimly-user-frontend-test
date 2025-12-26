@@ -111,7 +111,11 @@ export default function AddPolicy() {
     setLoading(true);
 
     try {
-      const policy = await policyService.createPolicy(formData);
+      const payload: any = { insuranceCompanyId: formData.insuranceCompanyId };
+      if (formData.policyNumber.trim()) payload.policyNumber = formData.policyNumber.trim();
+      if (formData.sumAssured.trim()) payload.sumAssured = formData.sumAssured.trim();
+
+      const policy = await policyService.createPolicy(payload);
       setPolicyId(policy.id);
       setStep(2);
     } catch (err: any) {
@@ -309,14 +313,13 @@ export default function AddPolicy() {
             <div>
               <label htmlFor="policyNumber" className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                 <FileText className="w-4 h-4 mr-2" />
-                Policy Number *
+                Policy Number (optional)
               </label>
               <input
                 id="policyNumber"
                 type="text"
                 value={formData.policyNumber}
                 onChange={(e) => setFormData({ ...formData, policyNumber: e.target.value })}
-                required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
                 placeholder="Enter policy number"
               />
@@ -324,14 +327,13 @@ export default function AddPolicy() {
 
             <div>
               <label htmlFor="sumAssured" className="block text-sm font-medium text-gray-700 mb-2">
-                Sum Assured *
+                Sum Assured (optional)
               </label>
               <input
                 id="sumAssured"
                 type="number"
                 value={formData.sumAssured}
                 onChange={(e) => setFormData({ ...formData, sumAssured: e.target.value })}
-                required
                 min="0"
                 step="0.01"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
@@ -393,10 +395,18 @@ export default function AddPolicy() {
               </button>
               <button
                 type="submit"
-                disabled={loading || documents.length === 0}
+                disabled={loading}
                 className="flex-1 bg-brand-600 text-white py-3 rounded-lg font-medium hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
-                {loading ? 'Uploading...' : nominees.length > 0 ? 'Next: Select Nominees' : 'Complete'}
+                {loading
+                  ? 'Saving...'
+                  : documents.length > 0
+                  ? nominees.length > 0
+                    ? 'Next: Select Nominees'
+                    : 'Complete'
+                  : nominees.length > 0
+                  ? 'Skip Documents'
+                  : 'Save Draft'}
               </button>
             </div>
           </form>
@@ -521,10 +531,10 @@ export default function AddPolicy() {
               </button>
               <button
                 type="submit"
-                disabled={loading || totalShare !== 100 || selectedNominees.length === 0}
+                disabled={loading}
                 className="flex-1 bg-brand-600 text-white py-3 rounded-lg font-medium hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
-                {loading ? 'Saving...' : 'Complete'}
+                {loading ? 'Saving...' : totalShare === 100 && selectedNominees.length > 0 ? 'Complete' : 'Save Draft'}
               </button>
             </div>
           </form>

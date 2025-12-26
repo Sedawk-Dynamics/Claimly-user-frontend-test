@@ -17,7 +17,7 @@ export default function AddNominee() {
   // Step 1: Basic Info
   const [formData, setFormData] = useState({
     name: '',
-    relationship: 'SPOUSE' as 'SPOUSE' | 'CHILD' | 'PARENT' | 'SIBLING' | 'FRIEND' | 'OTHER',
+    relationship: '' as '' | 'SPOUSE' | 'CHILD' | 'PARENT' | 'SIBLING' | 'FRIEND' | 'OTHER',
     mobileNumber: '',
     dob: '',
     email: '',
@@ -39,7 +39,14 @@ export default function AddNominee() {
     setLoading(true);
 
     try {
-      const nominee = await nomineeService.createNominee(formData);
+      const nominee = await nomineeService.createNominee({
+        name: formData.name,
+        relationship: formData.relationship || undefined,
+        mobileNumber: formData.mobileNumber || undefined,
+        dob: formData.dob || undefined,
+        email: formData.email || undefined,
+        address: formData.address || undefined,
+      });
       setNomineeId(nominee.id);
       setStep(2);
     } catch (err: any) {
@@ -159,15 +166,15 @@ export default function AddNominee() {
 
             <div>
               <label htmlFor="relationship" className="block text-sm font-medium text-gray-700 mb-2">
-                Relationship *
+                Relationship (optional)
               </label>
               <select
                 id="relationship"
                 value={formData.relationship}
                 onChange={(e) => setFormData({ ...formData, relationship: e.target.value as any })}
-                required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
               >
+                <option value="">Select relationship (optional)</option>
                 <option value="SPOUSE">Spouse</option>
                 <option value="CHILD">Child</option>
                 <option value="PARENT">Parent</option>
@@ -179,14 +186,13 @@ export default function AddNominee() {
 
             <div>
               <label htmlFor="mobileNumber" className="block text-sm font-medium text-gray-700 mb-2">
-                Mobile Number *
+                Mobile Number (optional)
               </label>
               <input
                 id="mobileNumber"
                 type="tel"
                 value={formData.mobileNumber}
                 onChange={(e) => setFormData({ ...formData, mobileNumber: e.target.value.replace(/\D/g, '').slice(0, 10) })}
-                required
                 maxLength={10}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
                 placeholder="9876543210"
@@ -195,14 +201,13 @@ export default function AddNominee() {
 
             <div>
               <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-2">
-                Date of Birth *
+                Date of Birth (optional)
               </label>
               <input
                 id="dob"
                 type="date"
                 value={formData.dob}
                 onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-                required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
               />
             </div>
