@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { nomineeService, nomineeDocumentService } from '../services/nominee.service';
 import { ArrowLeft, Upload, Check } from 'lucide-react';
