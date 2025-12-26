@@ -25,7 +25,7 @@ export const policyService = {
     insuranceCompanyId?: string;
     policyNumber?: string;
     sumAssured?: string;
-    status?: 'ACTIVE' | 'INACTIVE';
+    status?: 'DRAFT' | 'PENDING' | 'ACCEPTED' | 'REJECTED';
   }): Promise<Policy> {
     const response = await api.put<{ success: boolean; data: Policy }>(`/policies/${id}`, data);
     return response.data.data;

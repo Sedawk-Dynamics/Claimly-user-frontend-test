@@ -109,7 +109,7 @@ export default function NomineesList() {
     }
   };
 
-  const handleUpdateNomineeDocument = async (nomineeId: string, documentId: string, documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'DEATH_CERTIFICATE' | 'OTHER', file: File) => {
+  const handleUpdateNomineeDocument = async (nomineeId: string, documentId: string, documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'OTHER', file: File) => {
     if (!file) {
       setError('Please select a file to update.');
       return;
@@ -369,7 +369,7 @@ export default function NomineesList() {
                                       <button
                                         onClick={() => {
                                           if (updateFiles[document.id]) {
-                                            handleUpdateNomineeDocument(nominee.id, document.id, document.documentType as 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'DEATH_CERTIFICATE' | 'OTHER', updateFiles[document.id]!);
+                                            handleUpdateNomineeDocument(nominee.id, document.id, document.documentType as 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'OTHER', updateFiles[document.id]!);
                                           }
                                         }}
                                         disabled={isUpdating}

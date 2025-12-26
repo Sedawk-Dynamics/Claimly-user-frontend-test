@@ -70,7 +70,12 @@ export interface Policy {
   insuranceCompany: InsuranceCompany;
   policyNumber: string;
   sumAssured: string;
-  status: 'ACTIVE' | 'INACTIVE';
+  // Policy lifecycle statuses from backend
+  // DRAFT: user created but incomplete
+  // PENDING: all data/documents present, awaiting admin review
+  // ACCEPTED: admin accepted the policy
+  // REJECTED: admin rejected the policy
+  status: 'DRAFT' | 'PENDING' | 'ACCEPTED' | 'REJECTED';
   uploadedAt: string;
   nominees: Array<{
     id: string;
@@ -114,7 +119,7 @@ export interface KycStatus {
 
 export interface NomineeDocument {
   id: string;
-  documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'DEATH_CERTIFICATE' | 'OTHER';
+  documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'OTHER';
   documentName: string;
   documentUrl: string;
   isVerified: boolean;

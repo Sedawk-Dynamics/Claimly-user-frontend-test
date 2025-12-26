@@ -334,9 +334,20 @@ export default function Policies() {
                 <div className="flex-1">
                   <div className="flex items-center space-x-3 mb-2">
                     <h3 className="text-lg font-bold text-gray-900 dark:text-white">{policy.policyNumber}</h3>
-                    <span className={`badge ${policy.status === 'ACTIVE' ? 'badge-success' : 'status-inactive'}`}>
-                      {policy.status}
-                    </span>
+                    {(() => {
+                      const statusClass = policy.status === 'ACCEPTED'
+                        ? 'badge badge-success'
+                        : policy.status === 'PENDING'
+                        ? 'badge badge-warning'
+                        : policy.status === 'REJECTED'
+                        ? 'badge badge-danger'
+                        : 'status-inactive';
+                      return (
+                        <span className={statusClass}>
+                          {policy.status}
+                        </span>
+                      );
+                    })()}
                     {(() => {
                       const totalDocs = policy.documents.length;
                       const verifiedDocs = policy.documents.filter((doc) => doc.isVerified && doc.verifiedAt);

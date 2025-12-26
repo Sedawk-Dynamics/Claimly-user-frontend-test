@@ -6,7 +6,7 @@ import { ArrowLeft, Save, Upload, FileText, X, CheckCircle, Clock } from 'lucide
 import { useRequireActiveSubscription } from '../hooks/useRequireActiveSubscription';
 
 type Relationship = 'SPOUSE' | 'CHILD' | 'PARENT' | 'SIBLING' | 'FRIEND' | 'OTHER';
-type DocumentType = 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'DEATH_CERTIFICATE' | 'OTHER';
+type DocumentType = 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'OTHER';
 
 interface NewDocument {
   file: File | null;
@@ -400,7 +400,7 @@ export default function EditNominee() {
                             >
                               <option value="NOMINEE_ID">Nominee ID</option>
                               <option value="ADDRESS_PROOF">Address Proof</option>
-                              <option value="DEATH_CERTIFICATE">Death Certificate</option>
+                              
                               <option value="OTHER">Other</option>
                             </select>
                           </div>
@@ -534,7 +534,7 @@ export default function EditNominee() {
                     >
                       <option value="NOMINEE_ID">Nominee ID</option>
                       <option value="ADDRESS_PROOF">Address Proof</option>
-                      <option value="DEATH_CERTIFICATE">Death Certificate</option>
+                      
                       <option value="OTHER">Other</option>
                     </select>
                   </div>
