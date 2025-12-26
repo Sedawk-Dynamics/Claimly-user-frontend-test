@@ -42,6 +42,7 @@ export interface Nominee {
   dob: string | null;
   email?: string;
   address?: string;
+  status: 'DRAFT' | 'PENDING' | 'ACCEPTED' | 'REJECTED';
   createdAt: string;
   updatedAt: string;
   documents?: NomineeDocument[];

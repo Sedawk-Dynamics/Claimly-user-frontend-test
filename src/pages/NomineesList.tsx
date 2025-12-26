@@ -216,6 +216,22 @@ export default function NomineesList() {
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
                       <h3 className="text-lg font-bold text-gray-900 dark:text-white">{nominee.name}</h3>
+                      {(() => {
+                        const statusClass = nominee.status === 'ACCEPTED'
+                          ? 'badge badge-success'
+                          : nominee.status === 'PENDING'
+                          ? 'badge badge-warning'
+                          : nominee.status === 'REJECTED'
+                          ? 'badge badge-danger'
+                          : nominee.status === 'DRAFT'
+                          ? 'badge badge-warning'
+                          : 'status-inactive';
+                        return (
+                          <span className={statusClass}>
+                            {nominee.status}
+                          </span>
+                        );
+                      })()}
                       {getVerificationBadge(nominee)}
                     </div>
                     <p className="text-sm text-gray-600 dark:text-gray-400 capitalize">{nominee.relationship.toLowerCase()}</p>
