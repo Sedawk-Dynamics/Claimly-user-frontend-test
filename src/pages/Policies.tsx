@@ -91,6 +91,7 @@ export default function Policies() {
         dob: null,
         email: undefined,
         address: undefined,
+        status: link.nominee.status || 'DRAFT',
         createdAt: '',
         updatedAt: '',
       }));

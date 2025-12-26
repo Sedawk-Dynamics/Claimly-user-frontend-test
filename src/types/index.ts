@@ -84,6 +84,8 @@ export interface Policy {
       id: string;
       name: string;
       relationship: string;
+      dob?: string | null;
+      status: 'DRAFT' | 'PENDING' | 'ACCEPTED' | 'REJECTED';
     };
     sharePercentage: string;
   }>;
