@@ -127,7 +127,8 @@ export interface NomineeDocument {
   documentUrl: string;
   isVerified: boolean;
   uploadedAt: string;
-  verifiedAt?: string;
+  verifiedAt?: string | null;
+  rejectedAt?: string | null;
 }
 
 export interface PolicyDocument {
@@ -137,6 +138,7 @@ export interface PolicyDocument {
   documentUrl: string;
   isVerified: boolean;
   uploadedAt: string;
-  verifiedAt?: string;
+  verifiedAt?: string | null;
+  rejectedAt?: string | null;
 }
 
