@@ -10,6 +10,7 @@ export default function AddNominee() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const [error, setError] = useState('');
   const [nomineeId, setNomineeId] = useState<string>('');
   const { checking } = useRequireActiveSubscription();
@@ -32,6 +33,41 @@ export default function AddNominee() {
     nomineeId: null,
     addressProof: null,
   });
+
+  const saveDraftIfNeeded = async () => {
+    if (nomineeId) return;
+    if (!formData.name.trim()) return; // backend needs at least a name
+
+    try {
+      setSavingDraft(true);
+      const nominee = await nomineeService.createNominee({
+        name: formData.name.trim(),
+        relationship: formData.relationship || undefined,
+        mobileNumber: formData.mobileNumber || undefined,
+        dob: formData.dob || undefined,
+        email: formData.email || undefined,
+        address: formData.address || undefined,
+      });
+      setNomineeId(nominee.id);
+    } catch (err: any) {
+      console.error('Failed to auto-save nominee draft', err);
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
+  const handleBackToList = async () => {
+    await saveDraftIfNeeded();
+    navigate('/nominees');
+  };
+
+  useEffect(() => {
+    // On unmount/navigation, try to persist draft if we have partial data
+    return () => {
+      void saveDraftIfNeeded();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleStep1Submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -113,8 +149,9 @@ export default function AddNominee() {
   return (
     <div className="max-w-2xl mx-auto">
       <button
-        onClick={() => navigate('/nominees')}
-        className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
+        onClick={handleBackToList}
+        disabled={savingDraft}
+        className="flex items-center text-gray-600 hover:text-gray-900 mb-6 disabled:opacity-60"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Nominees

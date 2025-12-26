@@ -13,6 +13,7 @@ export default function AddPolicy() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
+  const [savingDraft, setSavingDraft] = useState(false);
   const [error, setError] = useState('');
   const [policyId, setPolicyId] = useState<string>('');
   const [companies, setCompanies] = useState<InsuranceCompany[]>([]);
@@ -36,6 +37,41 @@ export default function AddPolicy() {
     nomineeId: string;
     sharePercentage: number;
   }>>([]);
+
+  const saveDraftIfNeeded = async () => {
+    // Only save a draft if we don't already have a policyId and there's enough data
+    if (policyId) return;
+    if (!formData.insuranceCompanyId) return; // backend requires company id
+
+    const hasAnyField = formData.policyNumber.trim() || formData.sumAssured.trim();
+    if (!hasAnyField) return; // nothing to save
+
+    try {
+      setSavingDraft(true);
+      const payload: any = { insuranceCompanyId: formData.insuranceCompanyId };
+      if (formData.policyNumber.trim()) payload.policyNumber = formData.policyNumber.trim();
+      if (formData.sumAssured.trim()) payload.sumAssured = formData.sumAssured.trim();
+      const policy = await policyService.createPolicy(payload);
+      setPolicyId(policy.id);
+    } catch (err: any) {
+      console.error('Failed to auto-save draft policy', err);
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
+  const handleBackToPolicies = async () => {
+    await saveDraftIfNeeded();
+    navigate('/policies');
+  };
+
+  useEffect(() => {
+    // On unmount/navigation, try to persist draft if we have partial data
+    return () => {
+      void saveDraftIfNeeded();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     if (subscriptionChecking) {
@@ -231,8 +267,9 @@ export default function AddPolicy() {
   return (
     <div className="max-w-2xl mx-auto">
       <button
-        onClick={() => navigate('/policies')}
-        className="flex items-center text-gray-600 hover:text-gray-900 mb-6"
+        onClick={handleBackToPolicies}
+        disabled={savingDraft}
+        className="flex items-center text-gray-600 hover:text-gray-900 mb-6 disabled:opacity-60"
       >
         <ArrowLeft className="w-4 h-4 mr-2" />
         Back to Policies
