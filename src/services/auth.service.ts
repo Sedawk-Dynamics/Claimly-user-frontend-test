@@ -2,11 +2,12 @@ import api from './api';
 import { LoginResponse, User } from '../types';
 
 export const authService = {
-  async verifyOTP(idToken: string, mobileNumber: string, name?: string, email?: string, deviceId?: string, referralCode?: string): Promise<LoginResponse> {
+  async verifyOTP(idToken: string, mobileNumber: string, name?: string, email?: string, dob?: string, deviceId?: string, referralCode?: string): Promise<LoginResponse> {
     const response = await api.post<{ success: boolean; data: LoginResponse }>('/auth/register', {
       idToken,
       mobileNumber,
       name,
+      dob,
       email,
       deviceId,
       referralCode,

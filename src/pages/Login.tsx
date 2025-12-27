@@ -17,6 +17,7 @@ export default function Login() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [referralCode, setReferralCode] = useState('');
+  const [dob, setDob] = useState('');
   const [recaptchaVerifier, setRecaptchaVerifier] = useState<any>(null);
   const [idToken, setIdToken] = useState<string>('');
   const navigate = useNavigate();
@@ -121,11 +122,12 @@ export default function Login() {
 
       const normalizedPhone = normalizePhoneNumber(phoneNumber);
       const response = await authService.verifyOTP(
-        firebaseIdToken, 
-        normalizedPhone, 
-        name, 
-        email, 
-        undefined, 
+        firebaseIdToken,
+        normalizedPhone,
+        name,
+        email,
+        dob || undefined,
+        undefined,
         referralCode.trim() || undefined
       );
       localStorage.setItem('token', response.token);
@@ -339,6 +341,20 @@ export default function Login() {
                   placeholder="CLM1234567"
                 />
                 <p className="text-xs text-gray-500 dark:text-gray-400">Enter a referral code if you have one</p>
+              </div>
+
+              <div className="space-y-2">
+                <label htmlFor="dob" className="block text-sm font-semibold text-gray-800 mb-2">
+                  Date of Birth
+                </label>
+                <input
+                  id="dob"
+                  type="date"
+                  value={dob}
+                  onChange={(e) => setDob(e.target.value)}
+                  required={false}
+                  className="w-full px-4 py-3.5 bg-white/90 border-2 border-cyan-400/30 rounded-xl text-gray-900 placeholder:text-gray-500 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 outline-none transition-all duration-300 backdrop-blur-sm hover:border-cyan-400/50"
+                />
               </div>
 
               <button
