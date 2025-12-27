@@ -4,7 +4,7 @@ import { userService, documentService } from '../services/user.service';
 import { policyService, policyDocumentService } from '../services/policy.service';
 import { nomineeService, nomineeDocumentService } from '../services/nominee.service';
 import { User, UserDocument, Policy, Nominee, NomineeDocument } from '../types';
-import { User as UserIcon, Mail, Phone, Calendar, Save, FileText, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw, Gift, Copy, Check, Wallet, TrendingUp } from 'lucide-react';
+import { User as UserIcon, Mail, Phone, Calendar, Save, FileText, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw, Gift, Copy, Check, Wallet, TrendingUp, XCircle } from 'lucide-react';
 import KycSection from '../components/KycSection';
 import { useSubscriptionStatus } from '../hooks/useSubscriptionStatus';
 import { walletService } from '../services/wallet.service';
@@ -758,12 +758,18 @@ export default function Profile() {
                     const isUpdating = updatingDocument === document.id;
                     const hasUpdateFile = updateFiles[document.id] !== null && updateFiles[document.id] !== undefined;
                     
-                    // Determine status: Verified, Re-verification, or Pending
-                    const isReverification = !document.isVerified && document.verifiedAt !== null && document.verifiedAt !== undefined;
+                    // Determine status: Verified, Rejected, Re-verification, or Pending
+                    const isRejected = document.rejectedAt !== null && document.rejectedAt !== undefined;
+                    const isReverification = !document.isVerified && document.verifiedAt !== null && document.verifiedAt !== undefined && !isRejected;
                     const statusBadge = document.isVerified ? (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
                         <CheckCircle className="w-3 h-3 mr-1" />
                         Verified
+                      </span>
+                    ) : isRejected ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                        <XCircle className="w-3 h-3 mr-1" />
+                        Rejected
                       </span>
                     ) : isReverification ? (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-orange-100 text-orange-800">
@@ -791,6 +797,11 @@ export default function Profile() {
                             {document.isVerified && document.verifiedAt && (
                               <p className="text-xs text-green-600 mt-1">
                                 Verified on {formatDate(document.verifiedAt)}
+                              </p>
+                            )}
+                            {isRejected && document.rejectedAt && (
+                              <p className="text-xs text-red-600 mt-1">
+                                Rejected on {formatDate(document.rejectedAt)} • Please upload a new document
                               </p>
                             )}
                             {isReverification && document.verifiedAt && (

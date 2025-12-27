@@ -83,21 +83,44 @@ export default function KycSection() {
   };
 
   const statusBadge = () => {
-    if (!kycStatus || kycStatus.status === 'PENDING') {
-      return (
-        <span className="badge badge-warning">
-          <Clock className="w-4 h-4 mr-2" />
-          Pending Verification
-        </span>
-      );
+    if (!kycStatus) {
+      return null;
     }
 
-    return (
-      <span className="badge badge-success">
-        <CheckCircle className="w-4 h-4 mr-2" />
-        KYC Completed
-      </span>
-    );
+    // Use kycStatus field if available, otherwise fall back to status field
+    const detailedStatus = kycStatus.kycStatus || (kycStatus.status === 'COMPLETED' ? 'ACCEPTED' : 'PENDING');
+
+    switch (detailedStatus) {
+      case 'REJECTED':
+        return (
+          <span className="badge badge-danger">
+            <XCircle className="w-4 h-4 mr-2" />
+            Rejected
+          </span>
+        );
+      case 'ACCEPTED':
+        return (
+          <span className="badge badge-success">
+            <CheckCircle className="w-4 h-4 mr-2" />
+            KYC Completed
+          </span>
+        );
+      case 'DRAFT':
+        return (
+          <span className="badge badge-info">
+            <FileText className="w-4 h-4 mr-2" />
+            Draft
+          </span>
+        );
+      case 'PENDING':
+      default:
+        return (
+          <span className="badge badge-warning">
+            <Clock className="w-4 h-4 mr-2" />
+            Pending Verification
+          </span>
+        );
+    }
   };
 
   const getDocumentUrl = (url: string) => {
