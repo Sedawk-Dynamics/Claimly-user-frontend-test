@@ -759,7 +759,7 @@ export default function Profile() {
                     const hasUpdateFile = updateFiles[document.id] !== null && updateFiles[document.id] !== undefined;
                     
                     // Determine status: Verified, Rejected, Re-verification, or Pending
-                    const isRejected = document.rejectedAt !== null && document.rejectedAt !== undefined;
+                    const isRejected = document.rejectedAt !== null && document.rejectedAt !== undefined && document.rejectedAt !== '';
                     const isReverification = !document.isVerified && document.verifiedAt !== null && document.verifiedAt !== undefined && !isRejected;
                     const statusBadge = document.isVerified ? (
                       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
