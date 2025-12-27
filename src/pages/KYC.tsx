@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { documentService, userService } from '../services/user.service';
 import { KycStatus } from '../types';
-import { Upload, Check, CreditCard, FileText, ArrowLeft, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw, XCircle } from 'lucide-react';
+import { Upload, Check, CreditCard, FileText, ArrowLeft, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw, XCircle, Trash2, RefreshCw } from 'lucide-react';
 
 export default function KYC() {
   const navigate = useNavigate();
@@ -103,6 +103,63 @@ export default function KYC() {
     }
   };
 
+  const handleDeleteDocument = async (documentId: string) => {
+    if (!window.confirm('Are you sure you want to delete this document? This action cannot be undone.')) {
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    setUpdatingDocument(documentId);
+    try {
+      await documentService.deleteDocument(documentId);
+      setSuccess('Document deleted successfully.');
+      await checkKYCStatus();
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to delete document');
+    } finally {
+      setUpdatingDocument(null);
+    }
+  };
+
+  const renderKycStatusBadge = () => {
+    if (!kycStatus?.kycStatus) {
+      return null;
+    }
+
+    switch (kycStatus.kycStatus) {
+      case 'REJECTED':
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-100 text-red-800">
+            <XCircle className="w-4 h-4 mr-2" />
+            Rejected
+          </span>
+        );
+      case 'ACCEPTED':
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+            <CheckCircle className="w-4 h-4 mr-2" />
+            Verified
+          </span>
+        );
+      case 'DRAFT':
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
+            <FileText className="w-4 h-4 mr-2" />
+            Draft
+          </span>
+        );
+      case 'PENDING':
+      default:
+        return (
+          <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+            <Clock className="w-4 h-4 mr-2" />
+            Pending Verification
+          </span>
+        );
+    }
+  };
+
   const renderDocumentRow = (type: 'AADHAAR' | 'PAN') => {
     if (!kycStatus) {
       return null;
@@ -196,6 +253,16 @@ export default function KYC() {
             >
               <ExternalLink className="w-4 h-4" />
             </a>
+            {isRejected && (
+              <button
+                onClick={() => handleDeleteDocument(doc.id)}
+                disabled={isUpdating}
+                className="inline-flex items-center text-sm text-red-600 hover:text-red-700 font-medium disabled:opacity-50"
+                title="Delete document"
+              >
+                <Trash2 className="w-4 h-4" />
+              </button>
+            )}
           </div>
         </div>
         
@@ -292,11 +359,23 @@ export default function KYC() {
       </button>
 
       <div className="bg-white rounded-lg shadow-lg p-8">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Complete KYC</h1>
-          <p className="text-gray-600">
-            Please upload your Aadhaar and PAN documents to complete KYC verification
-          </p>
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">KYC Verification</h1>
+            <p className="text-gray-600">
+              Upload your Aadhaar and PAN documents to verify your identity.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {renderKycStatusBadge()}
+            <button
+              onClick={checkKYCStatus}
+              className="inline-flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50"
+              title="Refresh Status"
+            >
+              <RefreshCw className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {error && (

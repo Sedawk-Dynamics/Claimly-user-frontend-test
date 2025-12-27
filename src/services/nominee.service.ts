@@ -41,6 +41,7 @@ export const nomineeService = {
       dob?: string;
       email?: string;
       address?: string;
+      status?: 'DRAFT';
       documentsToAdd?: Array<{
         file: File;
         documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'OTHER';
@@ -87,6 +88,10 @@ export const nomineeService = {
     // Add documents to delete
     if (data.documentsToDelete && data.documentsToDelete.length > 0) {
       formData.append('documentsToDelete', JSON.stringify(data.documentsToDelete));
+    }
+
+    if (data.status === 'DRAFT') {
+      formData.append('status', 'DRAFT');
     }
 
     const response = await api.put<{ success: boolean; data: Nominee }>(`/nominees/${id}`, formData, {

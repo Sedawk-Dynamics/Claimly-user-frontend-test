@@ -28,10 +28,11 @@ export default function EditNominee() {
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [activeSave, setActiveSave] = useState<'draft' | 'final' | null>(null);
   const [error, setError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
-    relationship: 'SPOUSE' as Relationship,
+    relationship: '' as Relationship | '',
     mobileNumber: '',
     dob: '',
     email: '',
@@ -54,7 +55,7 @@ export default function EditNominee() {
         const nominee = await nomineeService.getNomineeById(id);
         setFormData({
           name: nominee.name,
-          relationship: nominee.relationship as Relationship,
+          relationship: (nominee.relationship as Relationship) || '',
           mobileNumber: nominee.mobileNumber,
           dob: nominee.dob || '',
           email: nominee.email || '',
@@ -199,12 +200,18 @@ export default function EditNominee() {
 
     setError('');
     setSaving(true);
+    setActiveSave('final');
+
+    const normalizedRelationship = formData.relationship
+      ? (formData.relationship as Relationship)
+      : undefined;
+
     try {
       await nomineeService.updateNominee(id, {
         name: formData.name,
-        relationship: formData.relationship,
-        mobileNumber: formData.mobileNumber,
-        dob: formData.dob,
+        relationship: normalizedRelationship,
+        mobileNumber: formData.mobileNumber || undefined,
+        dob: formData.dob || undefined,
         email: formData.email || undefined,
         address: formData.address || undefined,
         documentsToAdd: validNewDocuments.map((doc) => ({
@@ -224,6 +231,39 @@ export default function EditNominee() {
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to update nominee');
     } finally {
+      setActiveSave(null);
+      setSaving(false);
+    }
+  };
+
+  const handleSaveDraft = async () => {
+    if (!id) {
+      setError('Invalid nominee');
+      return;
+    }
+
+    setError('');
+    setSaving(true);
+    setActiveSave('draft');
+    const normalizedRelationship = formData.relationship
+      ? (formData.relationship as Relationship)
+      : undefined;
+
+    try {
+      await nomineeService.updateNominee(id, {
+        name: formData.name,
+        relationship: normalizedRelationship,
+        mobileNumber: formData.mobileNumber || undefined,
+        dob: formData.dob || undefined,
+        email: formData.email || undefined,
+        address: formData.address || undefined,
+        status: 'DRAFT',
+      });
+      navigate('/nominees');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to save draft');
+    } finally {
+      setActiveSave(null);
       setSaving(false);
     }
   };
@@ -275,15 +315,15 @@ export default function EditNominee() {
 
           <div>
             <label htmlFor="relationship" className="block text-sm font-medium text-gray-700 mb-2">
-              Relationship *
+              Relationship (optional)
             </label>
             <select
               id="relationship"
               value={formData.relationship}
-              onChange={(e) => setFormData({ ...formData, relationship: e.target.value as Relationship })}
-              required
+              onChange={(e) => setFormData({ ...formData, relationship: e.target.value as Relationship | '' })}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition"
             >
+              <option value="">Select relationship</option>
               <option value="SPOUSE">Spouse</option>
               <option value="CHILD">Child</option>
               <option value="PARENT">Parent</option>
@@ -295,7 +335,7 @@ export default function EditNominee() {
 
           <div>
             <label htmlFor="mobileNumber" className="block text-sm font-medium text-gray-700 mb-2">
-              Mobile Number *
+              Mobile Number (optional)
             </label>
             <input
               id="mobileNumber"
@@ -307,7 +347,6 @@ export default function EditNominee() {
                   mobileNumber: e.target.value.replace(/\D/g, '').slice(0, 10),
                 })
               }
-              required
               maxLength={10}
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition"
               placeholder="9876543210"
@@ -316,14 +355,13 @@ export default function EditNominee() {
 
           <div>
             <label htmlFor="dob" className="block text-sm font-medium text-gray-700 mb-2">
-              Date of Birth *
+              Date of Birth (optional)
             </label>
             <input
               id="dob"
               type="date"
               value={formData.dob}
               onChange={(e) => setFormData({ ...formData, dob: e.target.value })}
-              required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition"
             />
           </div>
@@ -584,21 +622,29 @@ export default function EditNominee() {
             </button>
           </div>
 
-          <div className="flex space-x-4 pt-6 border-t">
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-1 flex items-center justify-center px-6 py-3 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
-            >
-              <Save className="w-4 h-4 mr-2" />
-              {saving ? 'Saving...' : 'Save Changes'}
-            </button>
+          <div className="flex flex-col gap-3 pt-6 border-t md:flex-row">
             <button
               type="button"
               onClick={() => navigate('/nominees')}
-              className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition"
+              className="w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition md:flex-1"
             >
               Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              disabled={saving}
+              className="w-full border border-gray-300 text-gray-800 px-6 py-3 rounded-lg font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition md:flex-1"
+            >
+              {activeSave === 'draft' ? 'Saving...' : 'Save as Draft'}
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="w-full flex items-center justify-center px-6 py-3 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition md:flex-1"
+            >
+              <Save className="w-4 h-4 mr-2" />
+              {activeSave === 'final' ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>

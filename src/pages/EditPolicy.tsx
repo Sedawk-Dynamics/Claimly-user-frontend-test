@@ -11,6 +11,7 @@ export default function EditPolicy() {
   const { id } = useParams<{ id: string }>();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [activeSave, setActiveSave] = useState<'draft' | 'final' | null>(null);
   const [error, setError] = useState('');
   const [policy, setPolicy] = useState<Policy | null>(null);
   const [companies, setCompanies] = useState<InsuranceCompany[]>([]);
@@ -84,20 +85,45 @@ export default function EditPolicy() {
     }
   };
 
+  const buildUpdatePayload = (status?: 'DRAFT') => {
+    const payload: {
+      insuranceCompanyId?: string;
+      policyNumber?: string;
+      sumAssured?: string;
+      status?: 'DRAFT';
+    } = {};
+
+    if (formData.insuranceCompanyId) {
+      payload.insuranceCompanyId = formData.insuranceCompanyId;
+    }
+
+    const trimmedPolicyNumber = formData.policyNumber.trim();
+    if (trimmedPolicyNumber) {
+      payload.policyNumber = trimmedPolicyNumber;
+    }
+
+    const trimmedSumAssured = formData.sumAssured.trim();
+    if (trimmedSumAssured) {
+      payload.sumAssured = trimmedSumAssured;
+    }
+
+    if (status) {
+      payload.status = status;
+    }
+
+    return payload;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!id) return;
 
     setError('');
     setSaving(true);
+    setActiveSave('final');
 
     try {
-      // Update policy details
-      await policyService.updatePolicy(id, {
-        insuranceCompanyId: formData.insuranceCompanyId,
-        policyNumber: formData.policyNumber,
-        sumAssured: formData.sumAssured,
-      });
+      await policyService.updatePolicy(id, buildUpdatePayload());
 
       // Upload new documents
       for (const file of newDocuments) {
@@ -132,6 +158,25 @@ export default function EditPolicy() {
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to update policy');
     } finally {
+      setActiveSave(null);
+      setSaving(false);
+    }
+  };
+
+  const handleSaveAsDraft = async () => {
+    if (!id) return;
+
+    setError('');
+    setSaving(true);
+    setActiveSave('draft');
+
+    try {
+      await policyService.updatePolicy(id, buildUpdatePayload('DRAFT'));
+      navigate('/policies');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to save draft');
+    } finally {
+      setActiveSave(null);
       setSaving(false);
     }
   };
@@ -273,14 +318,13 @@ export default function EditPolicy() {
               <div>
                 <label htmlFor="policyNumber" className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
                   <FileText className="w-4 h-4 mr-2" />
-                  Policy Number *
+                  Policy Number (optional while drafting)
                 </label>
                 <input
                   id="policyNumber"
                   type="text"
                   value={formData.policyNumber}
                   onChange={(e) => setFormData({ ...formData, policyNumber: e.target.value })}
-                  required
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
                   placeholder="Enter policy number"
                 />
@@ -288,14 +332,13 @@ export default function EditPolicy() {
 
               <div>
                 <label htmlFor="sumAssured" className="block text-sm font-medium text-gray-700 mb-2">
-                  Sum Assured *
+                  Sum Assured (optional while drafting)
                 </label>
                 <input
                   id="sumAssured"
                   type="number"
                   value={formData.sumAssured}
                   onChange={(e) => setFormData({ ...formData, sumAssured: e.target.value })}
-                  required
                   min="0"
                   step="0.01"
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none transition"
@@ -484,20 +527,28 @@ export default function EditPolicy() {
           </div>
 
           {/* Submit Button */}
-          <div className="flex space-x-4 pt-4 border-t border-gray-200">
+          <div className="flex flex-col gap-3 pt-4 border-t border-gray-200 md:flex-row">
             <button
               type="button"
               onClick={() => navigate('/policies')}
-              className="flex-1 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition"
+              className="w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition md:flex-1"
             >
               Cancel
             </button>
             <button
+              type="button"
+              onClick={handleSaveAsDraft}
+              disabled={saving}
+              className="w-full bg-white border border-gray-300 text-gray-800 py-3 rounded-lg font-medium hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition md:flex-1"
+            >
+              {activeSave === 'draft' ? 'Saving...' : 'Save as Draft'}
+            </button>
+            <button
               type="submit"
               disabled={saving || (selectedNominees.length > 0 && totalShare !== 100)}
-              className="flex-1 bg-brand-600 text-white py-3 rounded-lg font-medium hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              className="w-full bg-brand-600 text-white py-3 rounded-lg font-medium hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition md:flex-1"
             >
-              {saving ? 'Saving...' : 'Save Changes'}
+              {activeSave === 'final' ? 'Saving...' : 'Save Changes'}
             </button>
           </div>
         </form>

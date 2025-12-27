@@ -114,6 +114,7 @@ export interface UserDocument {
 
 export interface KycStatus {
   status: 'COMPLETED' | 'PENDING';
+  kycStatus?: 'REJECTED' | 'ACCEPTED' | 'PENDING' | 'DRAFT';
   hasAadhaar: boolean;
   hasPan: boolean;
   missingDocuments: Array<'AADHAAR' | 'PAN'>;

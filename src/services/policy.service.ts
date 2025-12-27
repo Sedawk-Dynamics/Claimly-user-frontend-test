@@ -17,22 +17,57 @@ export const policyService = {
     policyNumber?: string;
     sumAssured?: string;
   }): Promise<Policy> {
-    // Drop empty strings so backend can auto-classify draft vs complete
-    const payload: any = { insuranceCompanyId: data.insuranceCompanyId };
-    if (data.policyNumber) payload.policyNumber = data.policyNumber;
-    if (data.sumAssured) payload.sumAssured = data.sumAssured;
+    const payload: Record<string, string> = {
+      insuranceCompanyId: data.insuranceCompanyId,
+    };
+    const trimmedPolicyNumber = data.policyNumber?.trim();
+    const trimmedSumAssured = data.sumAssured?.toString().trim();
+
+    if (trimmedPolicyNumber) {
+      payload.policyNumber = trimmedPolicyNumber;
+    }
+    if (trimmedSumAssured) {
+      payload.sumAssured = trimmedSumAssured;
+    }
 
     const response = await api.post<{ success: boolean; data: Policy }>('/policies', payload);
     return response.data.data;
   },
 
-  async updatePolicy(id: string, data: {
-    insuranceCompanyId?: string;
-    policyNumber?: string;
-    sumAssured?: string;
-    status?: 'DRAFT' | 'PENDING' | 'ACCEPTED' | 'REJECTED';
-  }): Promise<Policy> {
-    const response = await api.put<{ success: boolean; data: Policy }>(`/policies/${id}`, data);
+  async updatePolicy(
+    id: string,
+    data: {
+      insuranceCompanyId?: string;
+      policyNumber?: string;
+      sumAssured?: string;
+      status?: 'DRAFT' | 'PENDING' | 'ACCEPTED' | 'REJECTED';
+    }
+  ): Promise<Policy> {
+    const payload: Record<string, string> = {};
+
+    if (data.insuranceCompanyId) {
+      payload.insuranceCompanyId = data.insuranceCompanyId;
+    }
+
+    if (data.policyNumber !== undefined) {
+      const trimmed = data.policyNumber?.trim();
+      if (trimmed) {
+        payload.policyNumber = trimmed;
+      }
+    }
+
+    if (data.sumAssured !== undefined) {
+      const trimmed = data.sumAssured?.toString().trim();
+      if (trimmed) {
+        payload.sumAssured = trimmed;
+      }
+    }
+
+    if (data.status === 'DRAFT') {
+      payload.status = 'DRAFT';
+    }
+
+    const response = await api.put<{ success: boolean; data: Policy }>(`/policies/${id}`, payload);
     return response.data.data;
   },
 
