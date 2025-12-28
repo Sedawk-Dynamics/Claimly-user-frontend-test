@@ -15,6 +15,7 @@ import { useState, useEffect } from 'react';
 import { userService } from '../services/user.service';
 import { User as UserType } from '../types';
 import ThemeToggle from './ThemeToggle';
+import ApiResponseViewer from './ApiResponseViewer';
 import logo from '../logo/claimly logo png.png';
 
 const navigation = [
@@ -162,10 +163,13 @@ export default function Layout() {
         </header>
 
         {/* Page content */}
-        <main className="p-4 sm:p-6 lg:p-8 animate-fade-in">
+        <main className="p-4 sm:p-6 lg:p-8 animate-fade-in pb-[720px]">
           <Outlet />
         </main>
       </div>
+
+      {/* API Response Viewer */}
+      <ApiResponseViewer />
     </div>
   );
 }

@@ -99,6 +99,10 @@ export interface Policy {
     verifiedAt?: string | null;
     rejectedAt?: string | null;
   }>;
+  documentStatusInfo?: {
+    message: string;
+    actionType: 'ADD_NOMINEE' | 'UPLOAD_DOCUMENTS' | 'RESUBMIT_DOCUMENTS' | 'VERIFICATION_PENDING' | 'RE_VERIFICATION_PENDING';
+  } | null;
 }
 
 export interface UserDocument {

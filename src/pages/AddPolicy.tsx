@@ -184,12 +184,7 @@ export default function AddPolicy() {
         );
       }
 
-      // If no nominees, skip to completion
-      if (nominees.length === 0) {
-        navigate('/policies');
-        return;
-      }
-
+      // Always proceed to step 3 (nominees), even if no nominees exist
       setStep(3);
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to upload documents');
@@ -204,11 +199,12 @@ export default function AddPolicy() {
     setLoading(true);
 
     try {
-      // Link nominees to policy
+      // Link nominees to policy (if any selected)
       for (const selected of selectedNominees) {
         await policyNomineeService.linkNominee(policyId, selected.nomineeId, selected.sharePercentage);
       }
 
+      // Navigate to policies page whether nominees were added or not
       navigate('/policies');
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to link nominees');
@@ -438,12 +434,8 @@ export default function AddPolicy() {
                 {loading
                   ? 'Saving...'
                   : documents.length > 0
-                  ? nominees.length > 0
-                    ? 'Next: Select Nominees'
-                    : 'Complete'
-                  : nominees.length > 0
-                  ? 'Skip Documents'
-                  : 'Save Draft'}
+                  ? 'Next: Select Nominees'
+                  : 'Skip Documents & Continue'}
               </button>
             </div>
           </form>
@@ -452,30 +444,44 @@ export default function AddPolicy() {
         {step === 3 && (
           <form onSubmit={handleStep3Submit} className="space-y-6">
             <div>
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between mb-2">
                 <label className="block text-sm font-medium text-gray-700 flex items-center">
                   <Users className="w-4 h-4 mr-2" />
-                  Select Nominees and Share Percentage
+                  Select Nominees and Share Percentage (Optional)
                 </label>
-                <button
-                  type="button"
-                  onClick={handleAddNominee}
-                  className="text-sm text-primary-600 hover:text-primary-700 font-medium"
-                >
-                  + Add Nominee
-                </button>
-              </div>
-
-              {nominees.length === 0 ? (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-center">
-                  <p className="text-yellow-800 mb-4">No nominees found. Please add nominees first.</p>
+                {nominees.length > 0 && (
                   <button
                     type="button"
-                    onClick={() => navigate('/nominees/add')}
-                    className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
+                    onClick={handleAddNominee}
+                    className="text-sm text-primary-600 hover:text-primary-700 font-medium"
                   >
-                    Add Nominee
+                    + Add Nominee
                   </button>
+                )}
+              </div>
+              <p className="text-sm text-gray-500 mb-4">
+                You can add nominees now or skip this step and add them later. Policies without nominees will remain in draft status.
+              </p>
+
+              {nominees.length === 0 ? (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 text-center">
+                  <p className="text-blue-800 mb-4">No nominees found. You can add nominees later or skip this step.</p>
+                  <div className="flex gap-3 justify-center">
+                    <button
+                      type="button"
+                      onClick={() => navigate('/nominees/add')}
+                      className="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
+                    >
+                      Add Nominee Now
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading}
+                      className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition"
+                    >
+                      Skip for Now
+                    </button>
+                  </div>
                 </div>
               ) : selectedNominees.length === 0 ? (
                 <div className="bg-gray-50 rounded-lg p-4 text-center">
@@ -571,7 +577,7 @@ export default function AddPolicy() {
                 disabled={loading}
                 className="flex-1 bg-brand-600 text-white py-3 rounded-lg font-medium hover:bg-brand-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition"
               >
-                {loading ? 'Saving...' : totalShare === 100 && selectedNominees.length > 0 ? 'Complete' : 'Save Draft'}
+                {loading ? 'Saving...' : selectedNominees.length > 0 ? (totalShare === 100 ? 'Complete' : 'Save & Continue') : 'Skip Nominees & Complete'}
               </button>
             </div>
           </form>

@@ -507,79 +507,107 @@ export default function Policies() {
                     })}
                   </div>
                   {(() => {
-                    const rejectedDocs = policy.documents.filter((d) => d.rejectedAt !== null && d.rejectedAt !== undefined);
-                    const verifiedDocs = policy.documents.filter((d) => d.isVerified && d.verifiedAt);
-                    const unverifiedDocs = policy.documents.filter((d) => !d.isVerified && !d.rejectedAt);
-                    
-                    if (verifiedDocs.length === policy.documents.length) {
-                      // All documents are verified, no message needed
-                      return null;
-                    }
-                    
-                    if (rejectedDocs.length > 0) {
-                      // Show rejected message if there are rejected documents
-                      return (
-                        <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                          <p className="text-sm text-red-800 mb-2">
-                            <AlertCircle className="w-4 h-4 inline mr-1" />
-                            Some documents were rejected. Please upload new documents for verification.
-                          </p>
-                          <button
-                            onClick={() => navigate(`/policies/${policy.id}/edit`)}
-                            className="inline-flex items-center px-3 py-1.5 text-xs font-medium bg-red-600 text-white rounded hover:bg-red-700 transition"
-                          >
-                            <Upload className="w-3 h-3 mr-1" />
-                            Resubmit Documents
-                          </button>
-                        </div>
-                      );
-                    } else if (unverifiedDocs.length > 0) {
-                      // Check if it's re-verification (new docs after verification) or pending
-                      const needsReverification = verifiedDocs.length > 0 && unverifiedDocs.some((doc) => {
-                        const latestVerification = verifiedDocs
-                          .map((d) => d.verifiedAt ? new Date(d.verifiedAt).getTime() : 0)
-                          .sort((a, b) => b - a)[0];
-                        return new Date(doc.uploadedAt).getTime() > latestVerification;
-                      });
+                    // Use documentStatusInfo from backend if available
+                    if (policy.documentStatusInfo) {
+                      const { message, actionType } = policy.documentStatusInfo;
                       
-                      if (needsReverification) {
-                        return (
-                          <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                            <p className="text-sm text-orange-800 mb-2">
-                              <RotateCcw className="w-4 h-4 inline mr-1" />
-                              Re-verification pending. Please wait for admin approval.
-                            </p>
-                          </div>
-                        );
-                      } else {
-                        return (
-                          <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                            <p className="text-sm text-yellow-800 mb-2">
-                              <Clock className="w-4 h-4 inline mr-1" />
-                              Verification pending. Please wait for admin approval.
-                            </p>
-                          </div>
-                        );
+                      let bgColor = 'bg-yellow-50';
+                      let borderColor = 'border-yellow-200';
+                      let textColor = 'text-yellow-800';
+                      let buttonBg = 'bg-yellow-600';
+                      let buttonHover = 'hover:bg-yellow-700';
+                      let icon = <Clock className="w-4 h-4 inline mr-1" />;
+                      
+                      switch (actionType) {
+                        case 'ADD_NOMINEE':
+                          bgColor = 'bg-blue-50';
+                          borderColor = 'border-blue-200';
+                          textColor = 'text-blue-800';
+                          buttonBg = 'bg-blue-600';
+                          buttonHover = 'hover:bg-blue-700';
+                          icon = <Users className="w-4 h-4 inline mr-1" />;
+                          return (
+                            <div className={`mt-3 p-3 ${bgColor} border ${borderColor} rounded-lg`}>
+                              <p className={`text-sm ${textColor} mb-2`}>
+                                {icon}
+                                {message}
+                              </p>
+                              <button
+                                onClick={() => openNomineeModal(policy)}
+                                className={`inline-flex items-center px-3 py-1.5 text-xs font-medium ${buttonBg} text-white rounded ${buttonHover} transition`}
+                              >
+                                <Users className="w-3 h-3 mr-1" />
+                                Add Nominee
+                              </button>
+                            </div>
+                          );
+                        case 'UPLOAD_DOCUMENTS':
+                          icon = <AlertCircle className="w-4 h-4 inline mr-1" />;
+                          return (
+                            <div className={`mt-3 p-3 ${bgColor} border ${borderColor} rounded-lg`}>
+                              <p className={`text-sm ${textColor} mb-2`}>
+                                {icon}
+                                {message}
+                              </p>
+                              <button
+                                onClick={() => navigate(`/policies/${policy.id}/edit`)}
+                                className={`inline-flex items-center px-3 py-1.5 text-xs font-medium ${buttonBg} text-white rounded ${buttonHover} transition`}
+                              >
+                                <Upload className="w-3 h-3 mr-1" />
+                                Upload Documents
+                              </button>
+                            </div>
+                          );
+                        case 'RESUBMIT_DOCUMENTS':
+                          bgColor = 'bg-red-50';
+                          borderColor = 'border-red-200';
+                          textColor = 'text-red-800';
+                          buttonBg = 'bg-red-600';
+                          buttonHover = 'hover:bg-red-700';
+                          icon = <AlertCircle className="w-4 h-4 inline mr-1" />;
+                          return (
+                            <div className={`mt-3 p-3 ${bgColor} border ${borderColor} rounded-lg`}>
+                              <p className={`text-sm ${textColor} mb-2`}>
+                                {icon}
+                                {message}
+                              </p>
+                              <button
+                                onClick={() => navigate(`/policies/${policy.id}/edit`)}
+                                className={`inline-flex items-center px-3 py-1.5 text-xs font-medium ${buttonBg} text-white rounded ${buttonHover} transition`}
+                              >
+                                <Upload className="w-3 h-3 mr-1" />
+                                Resubmit Documents
+                              </button>
+                            </div>
+                          );
+                        case 'RE_VERIFICATION_PENDING':
+                          bgColor = 'bg-orange-50';
+                          borderColor = 'border-orange-200';
+                          textColor = 'text-orange-800';
+                          icon = <RotateCcw className="w-4 h-4 inline mr-1" />;
+                          return (
+                            <div className={`mt-3 p-3 ${bgColor} border ${borderColor} rounded-lg`}>
+                              <p className={`text-sm ${textColor} mb-2`}>
+                                {icon}
+                                {message}
+                              </p>
+                            </div>
+                          );
+                        case 'VERIFICATION_PENDING':
+                        default:
+                          return (
+                            <div className={`mt-3 p-3 ${bgColor} border ${borderColor} rounded-lg`}>
+                              <p className={`text-sm ${textColor} mb-2`}>
+                                {icon}
+                                {message}
+                              </p>
+                            </div>
+                          );
                       }
                     }
                     
                     return null;
                   })()}
-                  {policy.documents.length === 0 && (
-                    <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                      <p className="text-sm text-yellow-800 mb-2">
-                        <AlertCircle className="w-4 h-4 inline mr-1" />
-                        No documents uploaded. Please upload policy documents for verification.
-                      </p>
-                      <button
-                        onClick={() => navigate(`/policies/${policy.id}/edit`)}
-                        className="inline-flex items-center px-3 py-1.5 text-xs font-medium bg-yellow-600 text-white rounded hover:bg-yellow-700 transition"
-                      >
-                        <Upload className="w-3 h-3 mr-1" />
-                        Upload Documents
-                      </button>
-                    </div>
-                  )}
                 </div>
               )}
               {policy.nominees.length > 0 && (
