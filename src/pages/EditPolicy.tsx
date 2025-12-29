@@ -127,7 +127,7 @@ export default function EditPolicy() {
 
       // Upload new documents
       for (const file of newDocuments) {
-        await policyDocumentService.uploadDocument(id, file, 'POLICY_COPY', file.name);
+        await policyDocumentService.uploadDocument(id, file, 'POLICY_DOCUMENT', file.name);
       }
 
       // Update nominees - get current policy nominees first

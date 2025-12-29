@@ -171,7 +171,7 @@ export default function Profile() {
     }
   };
 
-  const handleUpdatePolicyDocument = async (policyId: string, documentId: string, documentType: 'POLICY_COPY' | 'RECEIPT' | 'OTHER', file: File) => {
+  const handleUpdatePolicyDocument = async (policyId: string, documentId: string, documentType: 'POLICY_DOCUMENT' | 'RECEIPT' | 'OTHER', file: File) => {
     if (!file) {
       setError('Please select a file to update.');
       return;
@@ -192,7 +192,7 @@ export default function Profile() {
     }
   };
 
-  const handleUpdateNomineeDocument = async (nomineeId: string, documentId: string, documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'OTHER', file: File) => {
+  const handleUpdateNomineeDocument = async (nomineeId: string, documentId: string, documentType: 'NOMINEE_PAN' | 'NOMINEE_AADHAAR' | 'OTHER', file: File) => {
     if (!file) {
       setError('Please select a file to update.');
       return;
@@ -291,7 +291,7 @@ export default function Profile() {
                 <button
                   onClick={() => {
                     if (updateFiles[document.id]) {
-                      handleUpdatePolicyDocument(policyId, document.id, document.documentType as 'POLICY_COPY' | 'RECEIPT' | 'OTHER', updateFiles[document.id]!);
+                      handleUpdatePolicyDocument(policyId, document.id, document.documentType as 'POLICY_DOCUMENT' | 'RECEIPT' | 'OTHER', updateFiles[document.id]!);
                     }
                   }}
                   disabled={isUpdating}
@@ -392,7 +392,7 @@ export default function Profile() {
                 <button
                   onClick={() => {
                     if (updateFiles[document.id]) {
-                      handleUpdateNomineeDocument(nomineeId, document.id, document.documentType as 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'OTHER', updateFiles[document.id]!);
+                      handleUpdateNomineeDocument(nomineeId, document.id, document.documentType as 'NOMINEE_PAN' | 'NOMINEE_AADHAAR' | 'OTHER', updateFiles[document.id]!);
                     }
                   }}
                   disabled={isUpdating}

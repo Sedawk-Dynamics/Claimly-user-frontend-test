@@ -44,13 +44,13 @@ export const nomineeService = {
       status?: 'DRAFT';
       documentsToAdd?: Array<{
         file: File;
-        documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'OTHER';
+        documentType: 'NOMINEE_PAN' | 'NOMINEE_AADHAAR' | 'OTHER';
         documentName: string;
       }>;
       documentsToUpdate?: Array<{
         documentId: string;
         file: File;
-        documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'OTHER';
+        documentType: 'NOMINEE_PAN' | 'NOMINEE_AADHAAR' | 'OTHER';
         documentName: string;
       }>;
       documentsToDelete?: string[];
@@ -111,7 +111,7 @@ export const nomineeDocumentService = {
   async uploadDocument(
     nomineeId: string,
     file: File,
-    documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'OTHER',
+    documentType: 'NOMINEE_PAN' | 'NOMINEE_AADHAAR' | 'OTHER',
     documentName?: string
   ): Promise<NomineeDocument> {
     const formData = new FormData();
@@ -137,7 +137,7 @@ export const nomineeDocumentService = {
     nomineeId: string,
     documentId: string,
     file: File,
-    documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'OTHER',
+    documentType: 'NOMINEE_PAN' | 'NOMINEE_AADHAAR' | 'OTHER',
     documentName?: string
   ): Promise<NomineeDocument> {
     const formData = new FormData();

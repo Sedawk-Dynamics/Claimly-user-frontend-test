@@ -6,7 +6,7 @@ import { ArrowLeft, Save, Upload, FileText, X, CheckCircle, Clock } from 'lucide
 import { useRequireActiveSubscription } from '../hooks/useRequireActiveSubscription';
 
 type Relationship = 'SPOUSE' | 'CHILD' | 'PARENT' | 'SIBLING' | 'FRIEND' | 'OTHER';
-type DocumentType = 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'OTHER';
+type DocumentType = 'NOMINEE_PAN' | 'NOMINEE_AADHAAR' | 'OTHER';
 
 interface NewDocument {
   file: File | null;
@@ -436,8 +436,8 @@ export default function EditNominee() {
                               }
                               className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
                             >
-                              <option value="NOMINEE_ID">Nominee ID</option>
-                              <option value="ADDRESS_PROOF">Address Proof</option>
+                              <option value="NOMINEE_PAN">Nominee PAN</option>
+                              <option value="NOMINEE_AADHAAR">Nominee Aadhaar</option>
                               
                               <option value="OTHER">Other</option>
                             </select>
@@ -570,8 +570,8 @@ export default function EditNominee() {
                       className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg"
                       required
                     >
-                      <option value="NOMINEE_ID">Nominee ID</option>
-                      <option value="ADDRESS_PROOF">Address Proof</option>
+                      <option value="NOMINEE_PAN">Nominee PAN</option>
+                      <option value="NOMINEE_AADHAAR">Nominee Aadhaar</option>
                       
                       <option value="OTHER">Other</option>
                     </select>

@@ -55,6 +55,10 @@ export interface Nominee {
     sumAssured: string;
     sharePercentage: string;
   }>;
+  documentStatusInfo?: {
+    message: string;
+    actionType: 'UPLOAD_DOCUMENTS' | 'RESUBMIT_DOCUMENTS' | 'VERIFICATION_PENDING' | 'RE_VERIFICATION_PENDING' | 'UPDATE_DETAILS' | 'VERIFICATION_DONE_NO_ACTION_NEEDED';
+  } | null;
 }
 
 export interface InsuranceCompany {
@@ -101,7 +105,7 @@ export interface Policy {
   }>;
   documentStatusInfo?: {
     message: string;
-    actionType: 'ADD_NOMINEE' | 'UPLOAD_DOCUMENTS' | 'RESUBMIT_DOCUMENTS' | 'VERIFICATION_PENDING' | 'RE_VERIFICATION_PENDING';
+    actionType: 'ADD_NOMINEE' | 'UPLOAD_DOCUMENTS' | 'RESUBMIT_DOCUMENTS' | 'VERIFICATION_PENDING' | 'RE_VERIFICATION_PENDING' | 'VERIFICATION_DONE_NO_ACTION_NEEDED';
   } | null;
 }
 
@@ -127,7 +131,7 @@ export interface KycStatus {
 
 export interface NomineeDocument {
   id: string;
-  documentType: 'NOMINEE_ID' | 'ADDRESS_PROOF' | 'OTHER';
+  documentType: 'NOMINEE_PAN' | 'NOMINEE_AADHAAR' | 'OTHER';
   documentName: string;
   documentUrl: string;
   isVerified: boolean;
@@ -138,7 +142,7 @@ export interface NomineeDocument {
 
 export interface PolicyDocument {
   id: string;
-  documentType: 'POLICY_COPY' | 'RECEIPT' | 'OTHER';
+  documentType: 'POLICY_DOCUMENT' | 'RECEIPT' | 'OTHER';
   documentName: string;
   documentUrl: string;
   isVerified: boolean;

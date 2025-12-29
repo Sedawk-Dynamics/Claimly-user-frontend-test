@@ -80,7 +80,7 @@ export const policyDocumentService = {
   async uploadDocument(
     policyId: string,
     file: File,
-    documentType: 'POLICY_COPY' | 'RECEIPT' | 'OTHER',
+    documentType: 'POLICY_DOCUMENT' | 'RECEIPT' | 'OTHER',
     documentName?: string
   ): Promise<PolicyDocument> {
     const formData = new FormData();
@@ -106,7 +106,7 @@ export const policyDocumentService = {
     policyId: string,
     documentId: string,
     file: File,
-    documentType: 'POLICY_COPY' | 'RECEIPT' | 'OTHER',
+    documentType: 'POLICY_DOCUMENT' | 'RECEIPT' | 'OTHER',
     documentName?: string
   ): Promise<PolicyDocument> {
     const formData = new FormData();

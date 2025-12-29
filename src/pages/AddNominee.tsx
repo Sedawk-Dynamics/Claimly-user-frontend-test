@@ -106,7 +106,7 @@ export default function AddNominee() {
           nomineeDocumentService.uploadDocument(
             nomineeId,
             documents.nomineeId,
-            'NOMINEE_ID',
+            'NOMINEE_PAN',
             documents.nomineeId.name
           )
         );
@@ -117,7 +117,7 @@ export default function AddNominee() {
           nomineeDocumentService.uploadDocument(
             nomineeId,
             documents.addressProof,
-            'ADDRESS_PROOF',
+            'NOMINEE_AADHAAR',
             documents.addressProof.name
           )
         );

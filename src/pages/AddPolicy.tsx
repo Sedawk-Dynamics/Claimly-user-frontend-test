@@ -179,7 +179,7 @@ export default function AddPolicy() {
         await policyDocumentService.uploadDocument(
           policyId,
           file,
-          'POLICY_COPY',
+          'POLICY_DOCUMENT',
           file.name
         );
       }
