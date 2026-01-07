@@ -94,7 +94,7 @@ export default function SubscriptionOffering() {
                   <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-3">{plan.name}</h3>
                   <div className="flex items-baseline justify-center">
                     <span className="text-4xl sm:text-5xl font-bold text-gradient-brand">₹{plan.price}</span>
-                    <span className="text-gray-600 dark:text-gray-400 ml-2 text-lg">/year</span>
+                    <span className="text-gray-600 dark:text-gray-400 ml-2 text-lg">/lifetime</span>
                   </div>
                 </div>
                 <ul className="space-y-3 mb-8">

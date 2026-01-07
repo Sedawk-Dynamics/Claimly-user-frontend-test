@@ -192,7 +192,7 @@ export default function Subscription() {
                     Extend Your Subscription
                   </h3>
                   <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Purchase a new subscription plan to extend your current subscription. Your new subscription will be added to your remaining days, giving you a total of {currentSubscription.subscription.expiresAt ? Math.max(0, differenceInDays(new Date(currentSubscription.subscription.expiresAt), new Date())) : 0} + 30 days of access.
+                    Purchase an additional subscription plan to extend your current lifetime access even further. Your new subscription will be added on top of your existing remaining days.
                   </p>
                 </div>
                 <button
