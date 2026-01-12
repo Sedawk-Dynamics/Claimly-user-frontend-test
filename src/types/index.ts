@@ -8,6 +8,7 @@ export interface User {
   subscriptionStatus: 'ACTIVE' | 'INACTIVE' | 'EXPIRED';
   referralCode?: string | null;
   walletBalance?: number;
+  profilePicture?: string | null;
   createdAt: string;
   updatedAt: string;
 }

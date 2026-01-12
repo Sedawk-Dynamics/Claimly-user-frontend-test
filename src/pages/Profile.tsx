@@ -4,7 +4,7 @@ import { userService, documentService } from '../services/user.service';
 import { policyService, policyDocumentService } from '../services/policy.service';
 import { nomineeService, nomineeDocumentService } from '../services/nominee.service';
 import { User, UserDocument, Policy, Nominee, NomineeDocument } from '../types';
-import { User as UserIcon, Mail, Phone, Calendar, Save, FileText, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw, Gift, Copy, Check, Wallet, TrendingUp, XCircle } from 'lucide-react';
+import { User as UserIcon, Mail, Phone, Calendar, Save, FileText, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw, Gift, Copy, Check, Wallet, TrendingUp, XCircle, Upload, Camera } from 'lucide-react';
 import KycSection from '../components/KycSection';
 import { useSubscriptionStatus } from '../hooks/useSubscriptionStatus';
 import { walletService } from '../services/wallet.service';
@@ -34,6 +34,7 @@ export default function Profile() {
   const [walletTransactions, setWalletTransactions] = useState<WalletTransaction[]>([]);
   const [loadingWallet, setLoadingWallet] = useState(false);
   const [showWalletHistory, setShowWalletHistory] = useState(false);
+  const [uploadingProfilePicture, setUploadingProfilePicture] = useState(false);
   const { subscription, checking: checkingSubscription } = useSubscriptionStatus();
   const hasActiveSubscription = subscription?.status === 'ACTIVE';
   const policiesWithDocuments = policies.filter((policy) => policy.documents && policy.documents.length > 0);
@@ -110,6 +111,48 @@ export default function Profile() {
     }
     const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
     return `${apiBaseUrl}${url.startsWith('/') ? url : `/${url}`}`;
+  };
+
+  const getProfilePictureUrl = (url: string | null | undefined) => {
+    if (!url) return null;
+    if (/^https?:\/\//i.test(url)) {
+      return url;
+    }
+    const apiBaseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+    return `${apiBaseUrl}${url.startsWith('/') ? url : `/${url}`}`;
+  };
+
+  const handleProfilePictureUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image size should be less than 5MB');
+      return;
+    }
+
+    setError('');
+    setSuccess('');
+    setUploadingProfilePicture(true);
+
+    try {
+      const updated = await userService.uploadProfilePicture(file);
+      setUser(updated);
+      setSuccess('Profile picture updated successfully');
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to upload profile picture');
+    } finally {
+      setUploadingProfilePicture(false);
+      // Reset file input
+      e.target.value = '';
+    }
   };
 
   const loadProfile = async () => {
@@ -452,8 +495,33 @@ export default function Profile() {
 
         <div className="space-y-6">
           <div className="flex items-center space-x-4">
-            <div className="w-20 h-20 bg-brand-100 dark:bg-brand-900/30 rounded-full flex items-center justify-center">
-              <UserIcon className="w-10 h-10 text-brand-600 dark:text-brand-400" />
+            <div className="relative">
+              {user?.profilePicture ? (
+                <img
+                  src={getProfilePictureUrl(user.profilePicture) || ''}
+                  alt={user?.name}
+                  className="w-20 h-20 rounded-full object-cover border-2 border-brand-200 dark:border-brand-700"
+                />
+              ) : (
+                <div className="w-20 h-20 bg-gradient-to-br from-brand-500 to-cyan-400 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg">
+                  {user?.name?.charAt(0).toUpperCase() || 'U'}
+                </div>
+              )}
+              <label className="absolute bottom-0 right-0 bg-brand-600 hover:bg-brand-700 dark:bg-brand-500 dark:hover:bg-brand-600 text-white rounded-full p-2 cursor-pointer shadow-lg hover:shadow-xl transition-all">
+                <Camera className="w-4 h-4" />
+                <input
+                  type="file"
+                  className="sr-only"
+                  accept="image/*"
+                  onChange={handleProfilePictureUpload}
+                  disabled={uploadingProfilePicture}
+                />
+              </label>
+              {uploadingProfilePicture && (
+                <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                </div>
+              )}
             </div>
             <div>
               <h2 className="text-xl font-semibold text-gray-900 dark:text-white">{user?.name}</h2>

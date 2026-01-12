@@ -12,6 +12,18 @@ export const userService = {
     return response.data.data;
   },
 
+  async uploadProfilePicture(file: File): Promise<User> {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const response = await api.post<{ success: boolean; data: User }>('/user/profile/picture', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data.data;
+  },
+
   async getSubscription(all: boolean = false): Promise<SubscriptionStatus | Subscription[]> {
     const response = await api.get<{ success: boolean; data: SubscriptionStatus | Subscription[] }>(
       `/user/subscription${all ? '?all=true' : ''}`
