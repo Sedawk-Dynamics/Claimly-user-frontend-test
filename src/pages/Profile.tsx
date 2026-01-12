@@ -4,7 +4,7 @@ import { userService, documentService } from '../services/user.service';
 import { policyService, policyDocumentService } from '../services/policy.service';
 import { nomineeService, nomineeDocumentService } from '../services/nominee.service';
 import { User, UserDocument, Policy, Nominee, NomineeDocument } from '../types';
-import { User as UserIcon, Mail, Phone, Calendar, Save, FileText, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw, Gift, Copy, Check, Wallet, TrendingUp, XCircle, Upload, Camera } from 'lucide-react';
+import { User as UserIcon, Mail, Phone, Calendar, Save, FileText, CheckCircle, Clock, ExternalLink, Edit2, X, RotateCcw, Gift, Copy, Check, Wallet, TrendingUp, XCircle, Camera } from 'lucide-react';
 import KycSection from '../components/KycSection';
 import { useSubscriptionStatus } from '../hooks/useSubscriptionStatus';
 import { walletService } from '../services/wallet.service';
