@@ -1,15 +1,21 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { userService } from '../services/user.service';
+import { bannerService } from '../services/banner.service';
 import { CreditCard, FileText, Users, User, Image as ImageIcon } from 'lucide-react';
 import type { SubscriptionStatus } from '../types';
+import type { Banner } from '../services/banner.service';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function Homepage() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [banner, setBanner] = useState<Banner | null>(null);
 
   useEffect(() => {
     checkSubscription();
+    loadBanner();
   }, []);
 
   const checkSubscription = async () => {
@@ -26,6 +32,21 @@ export default function Homepage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const loadBanner = async () => {
+    try {
+      const activeBanner = await bannerService.getActiveBanner();
+      setBanner(activeBanner);
+    } catch (error) {
+      console.error('Error loading banner:', error);
+    }
+  };
+
+  const getImageUrl = (imageUrl: string) => {
+    if (!imageUrl) return '';
+    if (imageUrl.startsWith('http')) return imageUrl;
+    return `${API_BASE_URL}${imageUrl.startsWith('/') ? imageUrl : `/${imageUrl}`}`;
   };
 
   if (loading) {
@@ -49,22 +70,35 @@ export default function Homepage() {
       </div>
 
       {/* Banners Section */}
-      <div>
-        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
-          <div className="w-1 h-6 bg-gradient-brand rounded-full mr-3"></div>
-          <ImageIcon className="w-5 h-5 mr-2" />
-          Banners
-        </h2>
-        <div className="card p-8 bg-gradient-brand text-white relative overflow-hidden group">
-          <div className="absolute inset-0 bg-gradient-fire opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
-          <div className="relative">
-            <h3 className="text-2xl font-bold mb-2">Secure Your Future</h3>
-            <p className="text-white/90">
-              Manage all your insurance policies in one place. Add nominees and ensure your loved ones are protected.
-            </p>
+      {banner && (
+        <div>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-4 flex items-center">
+            <div className="w-1 h-6 bg-gradient-brand rounded-full mr-3"></div>
+            <ImageIcon className="w-5 h-5 mr-2" />
+            Banners
+          </h2>
+          <div className="card p-0 overflow-hidden relative group">
+            <div className="relative w-full h-64 sm:h-80 bg-gradient-to-br from-brand-500 to-cyan-400">
+              <img
+                src={getImageUrl(banner.imageUrl)}
+                alt={banner.title || 'Banner'}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  // Fallback to gradient if image fails to load
+                  (e.target as HTMLImageElement).style.display = 'none';
+                }}
+              />
+              {banner.title && (
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent flex items-end">
+                  <div className="p-6 sm:p-8 w-full">
+                    <h3 className="text-2xl sm:text-3xl font-bold text-white mb-2">{banner.title}</h3>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Quick Actions */}
       <div>
