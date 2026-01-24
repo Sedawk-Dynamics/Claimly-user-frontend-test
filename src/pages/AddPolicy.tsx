@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { policyService, policyNomineeService, companyService, policyDocumentService } from '../services/policy.service';
 import { nomineeService } from '../services/nominee.service';
-import { userService } from '../services/user.service';
 import { InsuranceCompany, Nominee } from '../types';
 import { ArrowLeft, Upload, Check, FileText, Users, Building2 } from 'lucide-react';
 import { useRequireActiveSubscription } from '../hooks/useRequireActiveSubscription';
@@ -19,8 +18,6 @@ export default function AddPolicy() {
   const [companies, setCompanies] = useState<InsuranceCompany[]>([]);
   const [nominees, setNominees] = useState<Nominee[]>([]);
   const { checking: subscriptionChecking } = useRequireActiveSubscription();
-  const [kycChecking, setKycChecking] = useState(true);
-  const [kycReady, setKycReady] = useState(false);
 
   // Step 1: Policy Details
   const [formData, setFormData] = useState({
@@ -77,47 +74,9 @@ export default function AddPolicy() {
     if (subscriptionChecking) {
       return;
     }
-
-    let isMounted = true;
-
-    const verifyKyc = async () => {
-      try {
-        const status = await userService.getKycStatus();
-
-        if (status.status !== 'COMPLETED') {
-          navigate('/kyc', { replace: true });
-          return;
-        }
-
-        if (isMounted) {
-          setKycReady(true);
-        }
-      } catch (error: any) {
-        console.error('Failed to verify KYC status before adding policy', error);
-        if (isMounted) {
-          setKycReady(true);
-        }
-      } finally {
-        if (isMounted) {
-          setKycChecking(false);
-        }
-      }
-    };
-
-    verifyKyc();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [subscriptionChecking, navigate]);
-
-  useEffect(() => {
-    if (subscriptionChecking || !kycReady) {
-      return;
-    }
     loadCompanies();
     loadNominees();
-  }, [subscriptionChecking, kycReady]);
+  }, [subscriptionChecking]);
 
   const loadCompanies = async () => {
     try {
@@ -252,7 +211,7 @@ export default function AddPolicy() {
 
   const totalShare = selectedNominees.reduce((sum, n) => sum + n.sharePercentage, 0);
 
-  if (subscriptionChecking || kycChecking) {
+  if (subscriptionChecking) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600"></div>

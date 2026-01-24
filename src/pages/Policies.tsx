@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { policyService, policyNomineeService } from '../services/policy.service';
-import { userService } from '../services/user.service';
 import { nomineeService } from '../services/nominee.service';
 import { Policy, Nominee } from '../types';
 import { FileText, Plus, Trash2, Users, Pencil, X, CheckCircle, Clock, XCircle, Upload, AlertCircle, RotateCcw } from 'lucide-react';
@@ -251,25 +250,7 @@ export default function Policies() {
   };
 
   const handleAddPolicy = async () => {
-    // Check KYC status before allowing policy addition
-    try {
-      const status = await userService.getKycStatus();
-      if (status.status !== 'COMPLETED') {
-        if (
-          window.confirm(
-            `KYC is required to add policies. Missing: ${status.missingDocuments.join(', ')}. Do you want to complete KYC now?`
-          )
-        ) {
-          navigate('/kyc');
-        }
-        return;
-      }
-
-      navigate('/policies/add');
-    } catch (err) {
-      // If error, proceed to add policy page anyway
-      navigate('/policies/add');
-    }
+    navigate('/policies/add');
   };
 
   if (checking || loading) {

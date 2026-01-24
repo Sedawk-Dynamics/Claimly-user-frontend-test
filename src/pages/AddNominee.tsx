@@ -13,7 +13,7 @@ export default function AddNominee() {
   const [savingDraft, setSavingDraft] = useState(false);
   const [error, setError] = useState('');
   const [nomineeId, setNomineeId] = useState<string>('');
-  const { checking } = useRequireActiveSubscription();
+  const { checking: subscriptionChecking } = useRequireActiveSubscription();
 
   // Step 1: Basic Info
   const [formData, setFormData] = useState({
@@ -138,7 +138,7 @@ export default function AddNominee() {
     }
   };
 
-  if (checking) {
+  if (subscriptionChecking) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-600"></div>
