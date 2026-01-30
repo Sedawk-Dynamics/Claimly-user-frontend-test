@@ -140,7 +140,7 @@ export default function Subscription() {
             </div>
 
             {/* Expiry: show "Never expires" for lifetime, or date + days remaining */}
-            {currentSubscription.subscription.neverExpires || !currentSubscription.subscription.expiresAt || currentSubscription.subscription.expiresAt === 'lifetime' ? (
+            {currentSubscription.subscription.neverExpires || !currentSubscription.subscription.expiresAt ? (
               <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl border border-green-200/30 dark:border-green-800/30">
                 <div className="flex items-center space-x-3">
                   <Calendar className="w-5 h-5 text-green-600 dark:text-green-400" />
