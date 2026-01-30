@@ -26,6 +26,7 @@ export interface Subscription {
   paymentStatus: 'SUCCESS' | 'PENDING' | 'FAILED';
   transactionDate: string;
   expiresAt?: string | null;
+  neverExpires?: boolean;
   walletAmountUsed?: string;
   receiptUrl?: string | null;
 }

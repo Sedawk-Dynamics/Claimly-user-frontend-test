@@ -139,8 +139,18 @@ export default function Subscription() {
               </div>
             </div>
 
-            {/* Expiry Date and Days Remaining */}
-            {currentSubscription.subscription.expiresAt && (
+            {/* Expiry: show "Never expires" for lifetime, or date + days remaining */}
+            {currentSubscription.subscription.neverExpires || !currentSubscription.subscription.expiresAt ? (
+              <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl border border-green-200/30 dark:border-green-800/30">
+                <div className="flex items-center space-x-3">
+                  <Calendar className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  <div>
+                    <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">Validity</p>
+                    <p className="text-lg font-bold text-green-600 dark:text-green-400">Never expires</p>
+                  </div>
+                </div>
+              </div>
+            ) : (
               <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 rounded-xl border border-green-200/30 dark:border-green-800/30">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -148,14 +158,14 @@ export default function Subscription() {
                     <div>
                       <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">Expires On</p>
                       <p className="text-lg font-bold text-gray-900 dark:text-white">
-                        {format(new Date(currentSubscription.subscription.expiresAt), 'MMM dd, yyyy')}
+                        {format(new Date(currentSubscription.subscription.expiresAt!), 'MMM dd, yyyy')}
                       </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">Days Remaining</p>
                     <p className="text-xl font-bold text-green-600 dark:text-green-400">
-                      {Math.max(0, differenceInDays(new Date(currentSubscription.subscription.expiresAt), new Date()))}
+                      {Math.max(0, differenceInDays(new Date(currentSubscription.subscription.expiresAt!), new Date()))}
                     </p>
                   </div>
                 </div>
